@@ -14,6 +14,7 @@ import TranslationComparePanel from './panels/TranslationComparePanel'
 import SearchPanel from './panels/SearchPanel'
 import BrowsePanel from './panels/BrowsePanel'
 import ThemesPanel from './panels/ThemesPanel'
+import OriginalLanguagePanel from './panels/OriginalLanguagePanel'
 
 const WELCOME_MESSAGE: ChatMessage = {
   id: 'welcome',
@@ -208,11 +209,7 @@ export default function ChatInterface() {
           />
         )
       case 'original':
-        return (
-          <p className="text-[0.85rem] text-[var(--ink-medium)] italic">
-            원어 분석은 다음 단계에서 준비됩니다.
-          </p>
-        )
+        return <OriginalLanguagePanel verseRef={state.activePanelVerse} />
       default:
         return null
     }

@@ -84,3 +84,41 @@ export function getSearchModel(apiKey?: string) {
     },
   })
 }
+
+export const ORIGINAL_SYSTEM_PROMPT = `당신은 성경 원어(헬라어/히브리어) 분석 도우미입니다.
+사용자가 제공한 구절(Bible reference + KRV 본문)에 대해, 핵심 단어 3-5개를 골라
+다음 JSON 스키마로만 응답하세요 (마크다운 코드 블록 금지, 순수 JSON만):
+
+{
+  "language": "Greek" 또는 "Hebrew",
+  "words": [
+    {
+      "korean": "한국어 단어",
+      "original": "원어 단어 (그리스어/히브리어 문자)",
+      "transliteration": "로마자 음역",
+      "meaning": "1-2문장 의미 설명",
+      "context": "이 본문에서의 뉘앙스 (선택)"
+    }
+  ]
+}
+
+규칙:
+- 신약(마태~계시록) → Greek, 구약(창세기~말라기) → Hebrew
+- 확실하지 않은 단어는 절대 포함하지 말 것 (환각 금지)
+- 단어 의미는 표준 사전(BDAG/HALOT) 기반 일반 설명에 한정
+- 신학적 해석/주석은 제외 — 단어 의미만`
+
+export function getOriginalModel(apiKey?: string) {
+  const key = apiKey ?? process.env.GEMINI_API_KEY
+  if (!key) throw new Error('GEMINI_API_KEY 환경 변수가 설정되지 않았습니다.')
+  const ai = new GoogleGenerativeAI(key)
+  return ai.getGenerativeModel({
+    model: 'gemini-2.5-flash',
+    systemInstruction: ORIGINAL_SYSTEM_PROMPT,
+    generationConfig: {
+      maxOutputTokens: 1024,
+      temperature: 0.2,
+      responseMimeType: 'application/json',
+    },
+  })
+}
