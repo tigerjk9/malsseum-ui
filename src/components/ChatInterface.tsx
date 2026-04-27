@@ -232,7 +232,7 @@ export default function ChatInterface() {
       <div className="flex flex-1 overflow-hidden">
         <IconSidebar activePanel={state.activePanel} onToggle={handlePanelToggle} />
         <main
-          className={`flex flex-col flex-1 overflow-hidden transition-[margin] duration-200 ${
+          className={`flex flex-col flex-1 overflow-hidden ${
             panelOpen ? 'md:mr-[280px]' : ''
           }`}
         >

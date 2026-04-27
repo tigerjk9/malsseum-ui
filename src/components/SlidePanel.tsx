@@ -31,7 +31,7 @@ export default function SlidePanel({ open, title, onClose, children }: Props) {
       <div
         data-testid="slide-panel-overlay"
         onClick={onClose}
-        className="md:hidden fixed inset-0 z-30 bg-[rgba(61,43,31,0.4)]"
+        className="md:hidden fixed inset-0 z-30 bg-[rgba(61,43,31,0.4)] panel-backdrop-enter"
         aria-hidden="true"
       />
       <aside
@@ -39,7 +39,7 @@ export default function SlidePanel({ open, title, onClose, children }: Props) {
         aria-label={title}
         aria-modal="true"
         className="fixed z-40 bg-[var(--hanji-cream)] border-l border-[var(--clay-border)]
-                   flex flex-col
+                   flex flex-col panel-enter
                    inset-0 md:inset-auto md:top-0 md:right-0 md:h-screen md:w-[280px]
                    shadow-[-4px_0_16px_rgba(61,43,31,0.06)]"
       >

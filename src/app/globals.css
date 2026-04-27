@@ -107,6 +107,23 @@ body > * {
   outline-offset: 2px;
 }
 
+/* ── 패널 슬라이드 인 (transform-only) ── */
+@keyframes panel-slide-in-right {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+@keyframes panel-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.panel-enter {
+  animation: panel-slide-in-right 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+.panel-backdrop-enter {
+  animation: panel-fade-in 220ms ease-out;
+}
+
 /* ── 모션 줄이기 ── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
