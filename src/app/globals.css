@@ -81,7 +81,8 @@ body > * {
   font-size: 1.05rem;
   line-height: 1.9;
   color: var(--ink-dark);
-  font-style: italic;
+  /* No default italic: Korean serif reads better upright.
+     Use blockquote / verse-label / card chrome for "this is scripture" signal. */
 }
 
 .verse-label {
