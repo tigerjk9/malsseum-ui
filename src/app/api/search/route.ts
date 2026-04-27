@@ -1,17 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSearchModel } from '@/lib/gemini'
-import { extractVerseRefs, parseVerseRefString } from '@/lib/verse-parser'
-import { fetchVerse } from '@/lib/bible-api'
-import { BOOK_IDS } from '@/lib/constants'
-import type { TranslationCode, VerseData, VerseRef } from '@/lib/types'
+import { retrieve } from '@/lib/rag'
+import type { TranslationCode, VerseRef } from '@/lib/types'
 
 export const runtime = 'nodejs'
+export const maxDuration = 30
 
 interface SearchResult {
   ref: VerseRef
   text: string
   bookNameKo: string
+  score?: number
 }
+
+const TOP_K = 5
 
 export async function GET(req: NextRequest) {
   const q = req.nextUrl.searchParams.get('q')?.trim()
@@ -23,39 +24,27 @@ export async function GET(req: NextRequest) {
   }
 
   const userApiKey = req.headers.get('x-gemini-api-key') ?? undefined
+  const apiKey = userApiKey ?? process.env.GEMINI_API_KEY ?? ''
+  if (!apiKey) {
+    return NextResponse.json(
+      { error: 'GEMINI_API_KEY 환경 변수가 설정되지 않았습니다.' },
+      { status: 500 }
+    )
+  }
 
   try {
-    const model = getSearchModel(userApiKey)
-    const result = await model.generateContent(`검색어: ${q}`)
-    const text = result.response.text()
-
-    const refs = extractVerseRefs(text)
-      .map(parseVerseRefString)
-      .filter((r): r is NonNullable<typeof r> => r !== null)
-      .filter((r) => BOOK_IDS[r.book])
-      .slice(0, 5)
-
-    if (refs.length === 0) {
-      return NextResponse.json({ query: q, results: [] })
-    }
-
-    const settled = await Promise.allSettled(
-      refs.map(async (r): Promise<SearchResult> => {
-        const verseRef: VerseRef = {
-          book: r.book,
-          chapter: r.chapter,
-          verse: r.verse,
-          translation: (r.translation as TranslationCode) ?? 'KRV',
-        }
-        const data: VerseData = await fetchVerse(verseRef)
-        return { ref: verseRef, text: data.text, bookNameKo: data.bookNameKo }
-      })
-    )
-
-    const results = settled
-      .filter((s): s is PromiseFulfilledResult<SearchResult> => s.status === 'fulfilled')
-      .map((s) => s.value)
-
+    const hits = await retrieve(q, TOP_K, apiKey)
+    const results: SearchResult[] = hits.map((h) => ({
+      ref: {
+        book: h.ref.book,
+        chapter: h.ref.chapter,
+        verse: h.ref.verse,
+        translation: 'KRV' as TranslationCode,
+      },
+      text: h.text,
+      bookNameKo: h.bookNameKo,
+      score: Number(h.score.toFixed(4)),
+    }))
     return NextResponse.json({ query: q, results })
   } catch (err) {
     const message = err instanceof Error ? err.message : '검색 실패'

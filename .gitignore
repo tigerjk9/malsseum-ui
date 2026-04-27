@@ -40,6 +40,10 @@ yarn-error.log*
 
 # oh-my-claudecode
 .omc/
+.claude/
+
+# RAG build state (resumable progress, regenerated each run)
+scripts/.rag-build-state.json
 
 # typescript
 *.tsbuildinfo
