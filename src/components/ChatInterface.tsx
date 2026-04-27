@@ -8,6 +8,7 @@ import MessageBubble from './MessageBubble'
 import ChatInput from './ChatInput'
 import TopBar from './TopBar'
 import IconSidebar from './IconSidebar'
+import BottomNav from './BottomNav'
 import SlidePanel from './SlidePanel'
 import TranslationComparePanel from './panels/TranslationComparePanel'
 import SearchPanel from './panels/SearchPanel'
@@ -232,7 +233,7 @@ export default function ChatInterface() {
           }`}
         >
           <div
-            className="flex-1 overflow-y-auto px-4 py-4 space-y-4"
+            className="flex-1 overflow-y-auto px-4 py-4 pb-20 md:pb-4 space-y-4"
             onScroll={(e) => {
               const el = e.currentTarget
               userScrolledUp.current = el.scrollTop < el.scrollHeight - el.clientHeight - 100
@@ -251,6 +252,11 @@ export default function ChatInterface() {
           <ChatInput onSend={handleSend} disabled={state.isLoading} />
         </main>
       </div>
+      <BottomNav
+        activePanel={state.activePanel}
+        onToggle={handlePanelToggle}
+        onHome={handleClosePanel}
+      />
       <SlidePanel open={panelOpen} title={panelTitle} onClose={handleClosePanel}>
         {renderPanelBody()}
       </SlidePanel>
