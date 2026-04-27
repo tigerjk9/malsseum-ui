@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { BOOK_IDS, BOOK_NAMES_KO } from '@/lib/constants'
+import { isValidChapter, getMaxChapter } from '@/lib/data/chapter-counts'
 import type { TranslationCode, VerseData } from '@/lib/types'
 
 interface Props {
@@ -30,6 +31,14 @@ export default function BrowsePanel({ onPickVerse, translation }: Props) {
   const load = async () => {
     const chapter = parseInt(chapterStr, 10)
     if (!book || isNaN(chapter) || chapter < 1) return
+    if (!isValidChapter(book, chapter)) {
+      const max = getMaxChapter(book)
+      const koName = BOOK_NAMES_KO[book] ?? book
+      setStatus('error')
+      setErrorMsg(max ? `${koName}은(는) 최대 ${max}장까지 있습니다.` : `알 수 없는 책: ${book}`)
+      setData(null)
+      return
+    }
     setStatus('loading')
     setErrorMsg('')
     setData(null)

@@ -93,4 +93,26 @@ describe('BrowsePanel', () => {
       expect(screen.getByText(/챕터 조회 실패/)).toBeInTheDocument()
     })
   })
+
+  it('요한복음 22장 입력 → fetch 호출 안 됨, 최대 장 안내', async () => {
+    render(<BrowsePanel onPickVerse={vi.fn()} translation="KRV" />)
+    fireEvent.change(screen.getByLabelText(/책/), { target: { value: 'John' } })
+    const ch = screen.getByLabelText(/장/) as HTMLInputElement
+    await userEvent.clear(ch)
+    await userEvent.type(ch, '22')
+    fireEvent.click(screen.getByRole('button', { name: /불러오기/ }))
+    expect(fetch).not.toHaveBeenCalled()
+    expect(await screen.findByText(/요한복음.*최대.*21장/)).toBeInTheDocument()
+  })
+
+  it('시편 200장 입력 → 차단 + 150장 안내', async () => {
+    render(<BrowsePanel onPickVerse={vi.fn()} translation="KRV" />)
+    fireEvent.change(screen.getByLabelText(/책/), { target: { value: 'Psalms' } })
+    const ch = screen.getByLabelText(/장/) as HTMLInputElement
+    await userEvent.clear(ch)
+    await userEvent.type(ch, '200')
+    fireEvent.click(screen.getByRole('button', { name: /불러오기/ }))
+    expect(fetch).not.toHaveBeenCalled()
+    expect(await screen.findByText(/시편.*최대.*150장/)).toBeInTheDocument()
+  })
 })
