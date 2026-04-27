@@ -4,7 +4,7 @@
 
 **Live**: https://malsseum-ui.vercel.app
 **Repo**: https://github.com/tigerjk9/malsseum-ui (default branch: `main`)
-**Status**: Phase 4 (RAG) + Phase 4.5 (design polish) shipped (2026-04-27)
+**Status**: Phase 4 (RAG) + Phase 4.5 (design polish) shipped (2026-04-27); Phase 5 (UX polish) shipped (2026-04-28)
 
 ---
 

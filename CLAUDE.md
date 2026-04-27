@@ -90,6 +90,8 @@ npm run build:rag    # rebuild RAG index (~50min, needs GEMINI_API_KEY)
 - **Don't animate layout properties** (`margin`, `width`, `height`, `top`, `left`, `padding`, `grid-template-*`). Use `transform` / `opacity`. The hanji aesthetic doesn't ask for elaborate motion anyway.
 - **Don't reach for emoji** for new chrome icons. Add an SVG to `icons.tsx`. Color emoji clash with the muted palette.
 - **Don't add a new accent color without dark-mode override**. A brown/clay tone that reads on light cream often falls below AA on dark surfaces. Verify `--clay` pattern: brighten the accent in `.dark`, don't just flip surfaces.
+- **Don't duplicate the typewriter effect**. `MessageBubble` already implements one via `displayedLen` state + `cleanRef` + `setInterval`. Adding another layer will double-stutter. See `src/components/MessageBubble.tsx`.
+- **Don't write to `malsseum_current` directly**. Active session persistence is managed by a `useEffect` in `ChatInterface` (saves on message/mode change, skips during `isLoading`). `malsseum_history` stores completed conversations (max 10). Both keys must stay in sync — see `CURRENT_KEY` / `HISTORY_KEY` constants.
 
 ## Related projects (separate repos)
 
