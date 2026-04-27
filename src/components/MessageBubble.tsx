@@ -1,10 +1,14 @@
 'use client'
+import { useState, useRef, useEffect } from 'react'
 import type { ChatMessage, PanelType, VerseRef } from '@/lib/types'
 import { parseSuggestions } from '@/lib/gemini'
 import { stripVerseTags } from '@/lib/verse-parser'
 import VerseCard from './VerseCard'
 import SuggestionChips from './SuggestionChips'
 import HanjaText from './HanjaText'
+
+const TYPEWRITER_CHARS = 2
+const TYPEWRITER_MS = 16
 
 interface Props {
   message: ChatMessage
@@ -18,6 +22,32 @@ export default function MessageBubble({ message, onAction, onSuggestion, hanjaEn
 
   const { clean } = parseSuggestions(message.content)
   const cleanContent = stripVerseTags(clean).replace(/\n{2,}/g, '\n')
+
+  const cleanRef = useRef(cleanContent)
+  cleanRef.current = cleanContent
+
+  const [displayedLen, setDisplayedLen] = useState(() =>
+    message.isStreaming ? 0 : cleanContent.length
+  )
+
+  useEffect(() => {
+    if (isUser) return
+    if (!message.isStreaming) {
+      setDisplayedLen(cleanRef.current.length)
+      return
+    }
+    const timer = setInterval(() => {
+      setDisplayedLen(prev => {
+        const target = cleanRef.current.length
+        return prev >= target ? prev : prev + TYPEWRITER_CHARS
+      })
+    }, TYPEWRITER_MS)
+    return () => clearInterval(timer)
+  }, [message.isStreaming, isUser])
+
+  const visibleContent = (!isUser && message.isStreaming)
+    ? cleanContent.slice(0, displayedLen)
+    : cleanContent
 
   if (isUser) {
     return (
@@ -48,7 +78,7 @@ export default function MessageBubble({ message, onAction, onSuggestion, hanjaEn
       <div className="max-w-[88%] text-[0.9rem] leading-[1.85] text-[var(--ink-dark)] px-1 whitespace-pre-line">
         {message.isStreaming ? (
           <span>
-            <HanjaText text={cleanContent} enabled={hanjaEnabled} />
+            <HanjaText text={visibleContent} enabled={hanjaEnabled} />
             <span
               aria-hidden="true"
               className="inline-block w-[2px] h-[1em] mx-0.5 -mb-[0.15em]
@@ -56,7 +86,7 @@ export default function MessageBubble({ message, onAction, onSuggestion, hanjaEn
             />
           </span>
         ) : (
-          <HanjaText text={cleanContent} enabled={hanjaEnabled} />
+          <HanjaText text={visibleContent} enabled={hanjaEnabled} />
         )}
       </div>
       {!message.isStreaming && message.suggestions.length > 0 && (
