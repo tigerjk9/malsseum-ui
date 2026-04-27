@@ -20,7 +20,7 @@ const ICONS: { panel: PanelType; Icon: IconComponent; label: string }[] = [
 export default function IconSidebar({ activePanel, onToggle }: Props) {
   return (
     <nav className="hidden md:flex flex-col items-center gap-2 px-1 py-4 w-14
-                    border-r border-[var(--clay-border)] bg-[rgba(245,237,224,0.5)]">
+                    border-r border-[var(--clay-border)] bg-[var(--hanji-cream)]">
       <div className="w-6 h-6 rounded-[var(--radius-pill)] bg-[var(--ink-dark)] flex items-center
                       justify-center text-[var(--hanji-cream)] text-xs mb-1">
         ✦

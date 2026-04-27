@@ -28,7 +28,7 @@ export default function MessageBubble({ message, onAction, onSuggestion, hanjaEn
         className={`max-w-[80%] rounded-[var(--radius-paper)] px-4 py-3 text-[0.9rem] leading-relaxed ${
           isUser
             ? 'rounded-br-sm bg-[var(--clay-light)] text-[var(--ink-dark)]'
-            : 'rounded-bl-sm border-l-2 border-[var(--clay)] bg-[rgba(139,99,67,0.08)] text-[var(--ink-dark)]'
+            : 'rounded-bl-sm border-l-2 border-[var(--clay)] bg-[var(--clay-light)] text-[var(--ink-dark)]'
         }`}
       >
         {message.isStreaming ? (

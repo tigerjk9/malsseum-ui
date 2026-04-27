@@ -32,10 +32,16 @@
 .dark {
   --hanji-cream: #1a1208;
   --hanji-warm: #140f07;
-  --ink-dark: #f0e6d3;
-  --ink-medium: #c4a882;
-  --paper-white: #241a10;
-  --clay-border: rgba(139, 99, 67, 0.35);
+  --ink-dark: #f5ecd9;        /* slightly brighter cream for primary text */
+  --ink-medium: #d4b48a;      /* warmer/lighter tan for secondary text */
+  --paper-white: #261b11;     /* a hair lighter than before for separation */
+  /* Brightened clay so accents (verse-label, ✦, ActionTag, focus ring) clear AA on dark bg.
+     #8b6343 → #d6a87d gives ~6.7:1 contrast vs paper-white-dark. */
+  --clay: #d6a87d;
+  --clay-light: rgba(214, 168, 125, 0.18);
+  --clay-border: rgba(214, 168, 125, 0.32);
+  --suggestion-bg: rgba(214, 168, 125, 0.10);
+  color-scheme: dark;
 }
 
 /* ── 기본 ── */
