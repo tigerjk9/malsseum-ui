@@ -37,7 +37,8 @@ export default function ChatInput({ onSend, disabled }: Props) {
   return (
     <div className="px-4 py-3 border-t border-[var(--clay-border)] bg-[var(--hanji-cream)]">
       <div className="flex items-end gap-3 bg-[var(--paper-white)] border border-[var(--clay-border)]
-                      rounded-[var(--radius-control)] px-4 py-2">
+                      rounded-[var(--radius-control)] px-4 py-2
+                      focus-within:border-[var(--clay)] transition-colors">
         <textarea
           ref={textareaRef}
           value={value}
@@ -49,7 +50,7 @@ export default function ChatInput({ onSend, disabled }: Props) {
           rows={1}
           className="flex-1 bg-transparent resize-none text-[0.9rem] text-[var(--ink-dark)]
                      placeholder:text-[var(--ink-medium)] placeholder:opacity-60
-                     focus:outline-none disabled:opacity-50"
+                     disabled:opacity-50 focus:outline-none focus-visible:outline-none"
           style={{ maxHeight: '120px' }}
         />
         <button

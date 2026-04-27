@@ -37,7 +37,7 @@ export default function TopBar({
           value={translation}
           onChange={(e) => onTranslationChange(e.target.value as TranslationCode)}
           className="text-[0.75rem] bg-[var(--clay-light)] text-[var(--ink-medium)] border-none
-                     rounded-[var(--radius-control)] px-3 py-1 focus:outline-none cursor-pointer"
+                     rounded-[var(--radius-control)] px-3 py-1 cursor-pointer"
         >
           {TRANSLATIONS.map((t) => (
             <option key={t} value={t}>{TRANSLATION_LABELS[t]}</option>

@@ -79,7 +79,7 @@ export default function BrowsePanel({ onPickVerse, translation }: Props) {
             onChange={(e) => setBook(e.target.value)}
             className="w-full bg-[var(--paper-white)] border border-[var(--clay-border)]
                        rounded-[var(--radius-control)] px-3 py-2 text-[0.85rem] text-[var(--ink-dark)]
-                       focus:outline-none focus:border-[var(--clay)]"
+                       focus:border-[var(--clay)]"
           >
             {BOOK_OPTIONS.map((b) => (
               <option key={b} value={b}>
@@ -97,7 +97,7 @@ export default function BrowsePanel({ onPickVerse, translation }: Props) {
             onChange={(e) => setChapterStr(e.target.value)}
             className="w-full bg-[var(--paper-white)] border border-[var(--clay-border)]
                        rounded-[var(--radius-control)] px-3 py-2 text-[0.85rem] text-[var(--ink-dark)]
-                       focus:outline-none focus:border-[var(--clay)]"
+                       focus:border-[var(--clay)]"
           />
         </label>
         <button
