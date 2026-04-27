@@ -1,5 +1,7 @@
 'use client'
 import type { ChatMessage, PanelType, VerseRef } from '@/lib/types'
+import { parseSuggestions } from '@/lib/gemini'
+import { stripVerseTags } from '@/lib/verse-parser'
 import VerseCard from './VerseCard'
 import SuggestionChips from './SuggestionChips'
 import HanjaText from './HanjaText'
@@ -14,7 +16,8 @@ interface Props {
 export default function MessageBubble({ message, onAction, onSuggestion, hanjaEnabled = false }: Props) {
   const isUser = message.role === 'user'
 
-  const cleanContent = message.content.replace(/SUGGESTIONS:\s*.+$/m, '').trimEnd()
+  const { clean } = parseSuggestions(message.content)
+  const cleanContent = stripVerseTags(clean)
 
   if (isUser) {
     return (
