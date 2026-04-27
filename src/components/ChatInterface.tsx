@@ -13,6 +13,7 @@ import SlidePanel from './SlidePanel'
 import TranslationComparePanel from './panels/TranslationComparePanel'
 import SearchPanel from './panels/SearchPanel'
 import BrowsePanel from './panels/BrowsePanel'
+import ThemesPanel from './panels/ThemesPanel'
 
 const WELCOME_MESSAGE: ChatMessage = {
   id: 'welcome',
@@ -199,9 +200,12 @@ export default function ChatInterface() {
         return <BrowsePanel onPickVerse={handlePickVerse} translation={state.translation} />
       case 'themes':
         return (
-          <p className="text-[0.85rem] text-[var(--ink-medium)] italic">
-            묵상 패널은 다음 단계에서 준비됩니다.
-          </p>
+          <ThemesPanel
+            onPickTheme={(prompt) => {
+              setState(s => ({ ...s, activePanel: 'none' }))
+              handleSend(prompt)
+            }}
+          />
         )
       case 'original':
         return (
