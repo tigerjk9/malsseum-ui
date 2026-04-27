@@ -19,7 +19,7 @@ export default function VerseCard({ verse, onAction, hanjaEnabled = false }: Pro
                     animate-fade-in">
       <div className="flex items-center gap-2 mb-1.5">
         <span className="verse-label">{displayRef}</span>
-        <span className="text-[0.6rem] text-[var(--ink-medium)]/50 tracking-wide">
+        <span className="text-[0.6rem] text-[var(--ink-medium)]/80 tracking-wide">
           {translationLabel}
         </span>
       </div>
@@ -39,7 +39,7 @@ function ActionTag({ label, onClick }: { label: string; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="text-[0.7rem] text-[var(--ink-medium)]/60 hover:text-[var(--clay)]
+      className="text-[0.7rem] text-[var(--ink-medium)]/80 hover:text-[var(--clay)]
                  transition-colors tracking-wide underline underline-offset-2
                  decoration-[var(--clay-border)] hover:decoration-[var(--clay)]"
     >

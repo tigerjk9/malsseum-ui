@@ -34,9 +34,9 @@ export default function MessageBubble({ message, onAction, onSuggestion, hanjaEn
   return (
     <div className="flex flex-col items-start gap-1 animate-fade-in">
       <span className="font-[family-name:var(--font-serif)] italic
-                       text-[0.7rem] text-[var(--clay)]/70 px-1
+                       text-[0.7rem] text-[var(--clay)]/90 px-1
                        flex items-center gap-1.5">
-        <span aria-hidden="true" className="not-italic text-[var(--clay)]/50">✦</span>
+        <span aria-hidden="true" className="not-italic text-[var(--clay)]/70">✦</span>
         말씀 길잡이
       </span>
       <div className="max-w-[88%] text-[0.9rem] leading-[1.85] text-[var(--ink-dark)] px-1">

@@ -51,7 +51,7 @@ export default function ChatInput({ onSend, disabled }: Props) {
           rows={1}
           className="flex-1 bg-transparent resize-none
                      text-[0.9rem] leading-relaxed text-[var(--ink-dark)]
-                     placeholder:text-[var(--ink-medium)]/40
+                     placeholder:text-[var(--ink-medium)]/60
                      disabled:opacity-40 focus:outline-none
                      py-1 min-h-[1.5rem]"
           style={{ maxHeight: '160px' }}
@@ -72,7 +72,7 @@ export default function ChatInput({ onSend, disabled }: Props) {
           </svg>
         </button>
       </div>
-      <p className="text-[0.6rem] text-center text-[var(--ink-medium)]/30 mt-1.5
+      <p className="text-[0.6rem] text-center text-[var(--ink-medium)]/50 mt-1.5
                     tracking-wider max-w-2xl mx-auto">
         Enter 전송 &middot; Shift+Enter 줄바꿈
       </p>

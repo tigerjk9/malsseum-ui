@@ -20,7 +20,7 @@ export default function SuggestionChips({ chips, onSelect }: Props) {
                      animate-fade-in"
           style={{ animationDelay: `${i * 60}ms` }}
         >
-          <span className="text-[var(--clay-border)] group-hover:text-[var(--clay)]
+          <span className="text-[var(--clay)]/60 group-hover:text-[var(--clay)]
                            transition-colors text-[0.7rem] leading-none mt-px">
             →
           </span>
