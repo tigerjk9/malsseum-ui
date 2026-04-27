@@ -1,5 +1,7 @@
 'use client'
+import type { ComponentType, SVGProps } from 'react'
 import type { PanelType } from '@/lib/types'
+import { ChatIcon, SearchIcon, BookIcon, LeafIcon } from './icons'
 
 interface Props {
   activePanel: PanelType
@@ -7,15 +9,16 @@ interface Props {
   onHome: () => void
 }
 
+type IconComponent = ComponentType<SVGProps<SVGSVGElement>>
 type NavTab =
-  | { id: 'home'; label: string; icon: string }
-  | { id: Exclude<PanelType, 'none' | 'compare' | 'original'>; label: string; icon: string }
+  | { id: 'home'; label: string; Icon: IconComponent }
+  | { id: Exclude<PanelType, 'none' | 'compare' | 'original'>; label: string; Icon: IconComponent }
 
 const TABS: NavTab[] = [
-  { id: 'home', label: '채팅', icon: '💬' },
-  { id: 'search', label: '검색', icon: '🔍' },
-  { id: 'browse', label: '탐독', icon: '📖' },
-  { id: 'themes', label: '묵상', icon: '🌿' },
+  { id: 'home', label: '채팅', Icon: ChatIcon },
+  { id: 'search', label: '검색', Icon: SearchIcon },
+  { id: 'browse', label: '탐독', Icon: BookIcon },
+  { id: 'themes', label: '묵상', Icon: LeafIcon },
 ]
 
 export default function BottomNav({ activePanel, onToggle, onHome }: Props) {
@@ -32,6 +35,7 @@ export default function BottomNav({ activePanel, onToggle, onHome }: Props) {
           : activePanel === tab.id
         const handleClick = () =>
           tab.id === 'home' ? onHome() : onToggle(tab.id)
+        const Icon = tab.Icon
         return (
           <button
             key={tab.id}
@@ -42,7 +46,7 @@ export default function BottomNav({ activePanel, onToggle, onHome }: Props) {
                         text-[0.7rem] transition-colors min-w-16
                         ${isActive ? 'text-[var(--clay)]' : 'text-[var(--ink-medium)]'}`}
           >
-            <span className="text-base" aria-hidden="true">{tab.icon}</span>
+            <Icon width={20} height={20} />
             <span>{tab.label}</span>
           </button>
         )

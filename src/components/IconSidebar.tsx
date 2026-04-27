@@ -1,17 +1,20 @@
 'use client'
+import type { ComponentType, SVGProps } from 'react'
 import type { PanelType } from '@/lib/types'
+import { SearchIcon, BookIcon, LeafIcon, CompareIcon, GlyphIcon } from './icons'
 
 interface Props {
   activePanel: PanelType
   onToggle: (panel: PanelType) => void
 }
 
-const ICONS: { panel: PanelType; icon: string; label: string }[] = [
-  { panel: 'search',   icon: '🔍', label: '검색' },
-  { panel: 'browse',   icon: '📖', label: '탐독' },
-  { panel: 'themes',   icon: '🌿', label: '묵상' },
-  { panel: 'compare',  icon: '⇄',  label: '비교' },
-  { panel: 'original', icon: 'α',  label: '원어' },
+type IconComponent = ComponentType<SVGProps<SVGSVGElement>>
+const ICONS: { panel: PanelType; Icon: IconComponent; label: string }[] = [
+  { panel: 'search',   Icon: SearchIcon,  label: '검색' },
+  { panel: 'browse',   Icon: BookIcon,    label: '탐독' },
+  { panel: 'themes',   Icon: LeafIcon,    label: '묵상' },
+  { panel: 'compare',  Icon: CompareIcon, label: '비교' },
+  { panel: 'original', Icon: GlyphIcon,   label: '원어' },
 ]
 
 export default function IconSidebar({ activePanel, onToggle }: Props) {
@@ -23,19 +26,20 @@ export default function IconSidebar({ activePanel, onToggle }: Props) {
         ✦
       </div>
       <div className="w-5 h-px bg-[var(--clay-border)]" />
-      {ICONS.map(({ panel, icon, label }) => (
+      {ICONS.map(({ panel, Icon, label }) => (
         <button
           key={panel}
           onClick={() => onToggle(panel)}
           title={label}
-          className={`w-8 h-8 rounded-[var(--radius-paper)] flex items-center justify-center text-sm
+          aria-label={label}
+          className={`w-8 h-8 rounded-[var(--radius-paper)] flex items-center justify-center
                       transition-colors ${
                         activePanel === panel
                           ? 'bg-[var(--clay-light)] text-[var(--clay)]'
                           : 'text-[var(--ink-medium)] hover:bg-[var(--clay-light)]'
                       }`}
         >
-          {icon}
+          <Icon width={18} height={18} />
         </button>
       ))}
     </nav>
