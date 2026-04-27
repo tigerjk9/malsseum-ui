@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+/* ── Tailwind v4 theme tokens ── */
+@theme inline {
+  --color-hanji-cream: #f5ede0;
+  --color-hanji-warm: #ede8e0;
+  --color-ink-dark: #3d2b1f;
+  --color-ink-medium: #7a5c3a;
+  --color-clay: #8b6343;
+  --color-paper-white: #ffffff;
+  --font-serif: var(--font-noto-serif-kr), 'Georgia', serif;
+  --font-ui: var(--font-inter), system-ui, sans-serif;
+}
+
+/* ── Runtime CSS variables (for var() in component code) ── */
+:root {
+  --hanji-cream: #f5ede0;
+  --hanji-warm: #ede8e0;
+  --ink-dark: #3d2b1f;
+  --ink-medium: #7a5c3a;
+  --clay: #8b6343;
+  --clay-light: rgba(139, 99, 67, 0.12);
+  --clay-border: rgba(139, 99, 67, 0.25);
+  --paper-white: #ffffff;
+  --suggestion-bg: rgba(245, 237, 224, 0.8);
+}
+
+.dark {
+  --hanji-cream: #1a1208;
+  --hanji-warm: #140f07;
+  --ink-dark: #f0e6d3;
+  --ink-medium: #c4a882;
+  --paper-white: #241a10;
+  --clay-border: rgba(139, 99, 67, 0.35);
+}
+
+/* ── 기본 ── */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--hanji-warm);
+  color: var(--ink-dark);
+  font-family: var(--font-ui);
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 28px,
+    rgba(139, 99, 67, 0.05) 28px,
+    rgba(139, 99, 67, 0.05) 29px
+  );
+}
+
+/* ── 구절 텍스트 ── */
+.verse-text {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  line-height: 1.9;
+  color: var(--ink-dark);
+  font-style: italic;
+}
+
+.verse-label {
+  font-family: var(--font-ui);
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--clay);
+}
+
+/* ── 스크롤바 ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--clay-border);
+  border-radius: 2px;
+}
+
+/* ── 포커스 링 ── */
+*:focus-visible {
+  outline: 2px solid var(--clay);
+  outline-offset: 2px;
+}
