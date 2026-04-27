@@ -40,16 +40,39 @@ export async function GET(req: NextRequest) {
       .replace(/^\s*```(?:json)?\s*/i, '')
       .replace(/\s*```\s*$/i, '')
       .trim()
-    let data: { language: string; words: unknown[] }
-    try {
-      data = JSON.parse(cleaned)
-    } catch {
+
+    const repair = (s: string) => s.replace(/,(\s*[}\]])/g, '$1')
+
+    const tryParse = (input: string): { language: string; words: unknown[] } | null => {
+      try {
+        return JSON.parse(input)
+      } catch {
+        return null
+      }
+    }
+
+    let data = tryParse(cleaned) ?? tryParse(repair(cleaned))
+
+    if (!data) {
       const start = cleaned.indexOf('{')
       const end = cleaned.lastIndexOf('}')
-      if (start === -1 || end === -1 || end <= start) {
-        throw new Error('Gemini가 유효한 JSON을 반환하지 않았습니다.')
+      if (start !== -1 && end > start) {
+        const slice = cleaned.slice(start, end + 1)
+        data = tryParse(slice) ?? tryParse(repair(slice))
       }
-      data = JSON.parse(cleaned.slice(start, end + 1))
+    }
+
+    if (!data) {
+      const wordsStart = cleaned.indexOf('"words"')
+      const lastValidObj = cleaned.lastIndexOf('}')
+      if (wordsStart !== -1 && lastValidObj !== -1) {
+        const truncated = cleaned.slice(0, lastValidObj + 1).replace(/,\s*\{[^}]*$/, '') + ']}'
+        data = tryParse(repair(truncated))
+      }
+    }
+
+    if (!data) {
+      throw new Error('Gemini가 유효한 JSON을 반환하지 않았습니다.')
     }
     return NextResponse.json({
       ref: `${book}:${chapter}:${verse}`,

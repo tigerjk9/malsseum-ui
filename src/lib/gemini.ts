@@ -127,7 +127,7 @@ export function getOriginalModel(apiKey?: string) {
     model: 'gemini-2.5-flash',
     systemInstruction: ORIGINAL_SYSTEM_PROMPT,
     generationConfig: {
-      maxOutputTokens: 1024,
+      maxOutputTokens: 2048,
       temperature: 0.2,
       responseMimeType: 'application/json',
     },
