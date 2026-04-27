@@ -1,11 +1,12 @@
 import type { Metadata } from 'next'
-import { Inter, Noto_Serif_KR } from 'next/font/google'
+import { IBM_Plex_Sans_KR, Noto_Serif_KR } from 'next/font/google'
 import './globals.css'
 import ThemeProvider from '@/components/ThemeProvider'
 
-const inter = Inter({
+const plexSansKR = IBM_Plex_Sans_KR({
   subsets: ['latin'],
-  variable: '--font-inter',
+  weight: ['300', '400', '500', '600'],
+  variable: '--font-plex-kr',
   display: 'swap',
 })
 
@@ -25,7 +26,7 @@ const FOUC_SCRIPT = `(function(){try{var t=localStorage.getItem('verbum-theme')|
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ko" className={`${inter.variable} ${notoSerifKR.variable}`}>
+    <html lang="ko" className={`${plexSansKR.variable} ${notoSerifKR.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: FOUC_SCRIPT }} />
       </head>

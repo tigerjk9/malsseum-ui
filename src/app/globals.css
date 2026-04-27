@@ -9,7 +9,7 @@
   --color-clay: #8b6343;
   --color-paper-white: #ffffff;
   --font-serif: var(--font-noto-serif-kr), 'Georgia', serif;
-  --font-ui: var(--font-inter), system-ui, sans-serif;
+  --font-ui: var(--font-plex-kr), -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
 }
 
 /* ── Runtime CSS variables (for var() in component code) ── */
