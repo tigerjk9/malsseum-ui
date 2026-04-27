@@ -33,7 +33,7 @@ export default function ThemesPanel({ onPickTheme }: Props) {
                 onClick={() => onPickTheme(
                   `${selected.title}에 대한 ${v.display} 말씀을 함께 묵상하고 싶어요.`
                 )}
-                className="w-full text-left p-2 rounded-lg
+                className="w-full text-left p-2 rounded-[var(--radius-paper)]
                            hover:bg-[var(--clay-light)] transition-colors"
               >
                 <div className="verse-label">{v.display}</div>
@@ -56,7 +56,7 @@ export default function ThemesPanel({ onPickTheme }: Props) {
         <button
           key={t.id}
           onClick={() => setSelected(t)}
-          className="p-3 rounded-lg border border-[var(--clay-border)]
+          className="p-3 rounded-[var(--radius-paper)] border border-[var(--clay-border)]
                      hover:bg-[var(--clay-light)] transition-colors text-left"
         >
           <div className="text-lg" aria-hidden="true">{t.emoji}</div>

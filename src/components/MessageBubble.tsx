@@ -20,7 +20,7 @@ export default function MessageBubble({ message, onAction, onSuggestion, hanjaEn
         <span className="verse-label px-1">✦ 말씀 길잡이</span>
       )}
       <div
-        className={`max-w-[80%] rounded-xl px-4 py-3 text-[0.9rem] leading-relaxed ${
+        className={`max-w-[80%] rounded-[var(--radius-paper)] px-4 py-3 text-[0.9rem] leading-relaxed ${
           isUser
             ? 'rounded-br-sm bg-[var(--clay-light)] text-[var(--ink-dark)]'
             : 'rounded-bl-sm border-l-2 border-[var(--clay)] bg-[rgba(139,99,67,0.08)] text-[var(--ink-dark)]'

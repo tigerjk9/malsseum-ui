@@ -15,7 +15,7 @@ export default function VerseCard({ verse, onAction, hanjaEnabled = false }: Pro
   const translationLabel = TRANSLATION_LABELS[ref.translation] ?? ref.translation
 
   return (
-    <div className="rounded-lg border border-[var(--clay-border)] bg-[var(--paper-white)] p-4 my-1 w-full">
+    <div className="rounded-[var(--radius-paper)] border border-[var(--clay-border)] bg-[var(--paper-white)] p-4 my-1 w-full">
       <div className="flex items-center justify-between mb-2">
         <span className="verse-label">{displayRef} · {translationLabel}</span>
       </div>
@@ -33,7 +33,7 @@ function ActionTag({ label, onClick }: { label: string; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="text-[0.65rem] bg-[var(--clay-light)] text-[var(--clay)] px-3 py-1 rounded-full
+      className="text-[0.65rem] bg-[var(--clay-light)] text-[var(--clay)] px-3 py-1 rounded-[var(--radius-pill)]
                  hover:bg-[rgba(139,99,67,0.2)] transition-colors"
     >
       {label}

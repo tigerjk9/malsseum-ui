@@ -78,7 +78,7 @@ export default function BrowsePanel({ onPickVerse, translation }: Props) {
             value={book}
             onChange={(e) => setBook(e.target.value)}
             className="w-full bg-[var(--paper-white)] border border-[var(--clay-border)]
-                       rounded-lg px-3 py-2 text-[0.85rem] text-[var(--ink-dark)]
+                       rounded-[var(--radius-control)] px-3 py-2 text-[0.85rem] text-[var(--ink-dark)]
                        focus:outline-none focus:border-[var(--clay)]"
           >
             {BOOK_OPTIONS.map((b) => (
@@ -96,14 +96,14 @@ export default function BrowsePanel({ onPickVerse, translation }: Props) {
             value={chapterStr}
             onChange={(e) => setChapterStr(e.target.value)}
             className="w-full bg-[var(--paper-white)] border border-[var(--clay-border)]
-                       rounded-lg px-3 py-2 text-[0.85rem] text-[var(--ink-dark)]
+                       rounded-[var(--radius-control)] px-3 py-2 text-[0.85rem] text-[var(--ink-dark)]
                        focus:outline-none focus:border-[var(--clay)]"
           />
         </label>
         <button
           onClick={load}
           disabled={status === 'loading'}
-          className="w-full px-3 py-2 rounded-lg bg-[var(--ink-dark)]
+          className="w-full px-3 py-2 rounded-[var(--radius-control)] bg-[var(--ink-dark)]
                      text-[var(--hanji-cream)] text-[0.8rem]
                      hover:bg-[var(--clay)] transition-colors disabled:opacity-40"
         >
@@ -125,7 +125,7 @@ export default function BrowsePanel({ onPickVerse, translation }: Props) {
               <li key={v.verse}>
                 <button
                   onClick={() => pick(v.verse, v.text)}
-                  className="w-full text-left py-1 px-2 rounded hover:bg-[var(--clay-light)]
+                  className="w-full text-left py-1 px-2 rounded-[var(--radius-paper)] hover:bg-[var(--clay-light)]
                              transition-colors flex gap-2"
                 >
                   <span className="verse-label flex-shrink-0 mt-1 w-6 text-right">

@@ -37,7 +37,7 @@ export default function ChatInput({ onSend, disabled }: Props) {
   return (
     <div className="px-4 py-3 border-t border-[var(--clay-border)] bg-[var(--hanji-cream)]">
       <div className="flex items-end gap-3 bg-[var(--paper-white)] border border-[var(--clay-border)]
-                      rounded-3xl px-4 py-2">
+                      rounded-[var(--radius-control)] px-4 py-2">
         <textarea
           ref={textareaRef}
           value={value}
@@ -55,7 +55,7 @@ export default function ChatInput({ onSend, disabled }: Props) {
         <button
           onClick={handleSend}
           disabled={disabled || !value.trim()}
-          className="w-8 h-8 rounded-full bg-[var(--ink-dark)] text-[var(--hanji-cream)]
+          className="w-8 h-8 rounded-[var(--radius-pill)] bg-[var(--ink-dark)] text-[var(--hanji-cream)]
                      flex items-center justify-center text-sm flex-shrink-0 mb-0.5
                      hover:bg-[var(--clay)] transition-colors disabled:opacity-40"
         >

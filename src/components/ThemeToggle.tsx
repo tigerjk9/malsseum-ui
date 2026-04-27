@@ -16,7 +16,7 @@ export default function ThemeToggle() {
       onChange={(e) => setTheme(e.target.value as ThemePref)}
       aria-label="테마 선택"
       className="text-[0.7rem] bg-[var(--clay-light)] text-[var(--ink-medium)] border-none
-                 rounded-xl px-2 py-1 focus:outline-none cursor-pointer"
+                 rounded-[var(--radius-control)] px-2 py-1 focus:outline-none cursor-pointer"
     >
       {(['light', 'dark', 'system'] as ThemePref[]).map((t) => (
         <option key={t} value={t}>{LABELS[t]}</option>

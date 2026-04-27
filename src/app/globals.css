@@ -10,6 +10,10 @@
   --color-paper-white: #ffffff;
   --font-serif: var(--font-noto-serif-kr), 'Georgia', serif;
   --font-ui: var(--font-plex-kr), -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  /* Radius scale: paper-like restraint, no bubbly uniform corners */
+  --radius-paper: 0.5rem;     /* 8px — surfaces: cards, panels, bubbles */
+  --radius-control: 0.625rem; /* 10px — inputs, buttons, selects */
+  --radius-pill: 9999px;      /* chips, tags, circular icon buttons */
 }
 
 /* ── Runtime CSS variables (for var() in component code) ── */

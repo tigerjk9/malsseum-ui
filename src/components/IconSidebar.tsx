@@ -18,7 +18,7 @@ export default function IconSidebar({ activePanel, onToggle }: Props) {
   return (
     <nav className="hidden md:flex flex-col items-center gap-3 px-1 py-4 w-12
                     border-r border-[var(--clay-border)] bg-[rgba(245,237,224,0.5)]">
-      <div className="w-6 h-6 rounded-full bg-[var(--ink-dark)] flex items-center
+      <div className="w-6 h-6 rounded-[var(--radius-pill)] bg-[var(--ink-dark)] flex items-center
                       justify-center text-[var(--hanji-cream)] text-xs mb-1">
         ✦
       </div>
@@ -28,7 +28,7 @@ export default function IconSidebar({ activePanel, onToggle }: Props) {
           key={panel}
           onClick={() => onToggle(panel)}
           title={label}
-          className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm
+          className={`w-8 h-8 rounded-[var(--radius-paper)] flex items-center justify-center text-sm
                       transition-colors ${
                         activePanel === panel
                           ? 'bg-[var(--clay-light)] text-[var(--clay)]'

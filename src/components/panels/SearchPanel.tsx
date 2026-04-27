@@ -104,7 +104,7 @@ export default function SearchPanel({ onPickVerse }: Props) {
           role="tab"
           aria-selected={mode === 'verse'}
           onClick={() => switchMode('verse')}
-          className={`flex-1 px-2 py-1 rounded-lg transition-colors ${
+          className={`flex-1 px-2 py-1 rounded-[var(--radius-paper)] transition-colors ${
             mode === 'verse'
               ? 'bg-[var(--clay-light)] text-[var(--clay)]'
               : 'text-[var(--ink-medium)] hover:bg-[var(--clay-light)]'
@@ -116,7 +116,7 @@ export default function SearchPanel({ onPickVerse }: Props) {
           role="tab"
           aria-selected={mode === 'theme'}
           onClick={() => switchMode('theme')}
-          className={`flex-1 px-2 py-1 rounded-lg transition-colors ${
+          className={`flex-1 px-2 py-1 rounded-[var(--radius-paper)] transition-colors ${
             mode === 'theme'
               ? 'bg-[var(--clay-light)] text-[var(--clay)]'
               : 'text-[var(--ink-medium)] hover:bg-[var(--clay-light)]'
@@ -133,14 +133,14 @@ export default function SearchPanel({ onPickVerse }: Props) {
           onKeyDown={handleKey}
           placeholder={placeholder}
           className="flex-1 bg-[var(--paper-white)] border border-[var(--clay-border)]
-                     rounded-lg px-3 py-2 text-[0.85rem] text-[var(--ink-dark)]
+                     rounded-[var(--radius-control)] px-3 py-2 text-[0.85rem] text-[var(--ink-dark)]
                      placeholder:text-[var(--ink-medium)] placeholder:opacity-60
                      focus:outline-none focus:border-[var(--clay)]"
         />
         <button
           onClick={runSearch}
           disabled={status === 'loading' || !query.trim()}
-          className="px-3 py-2 rounded-lg bg-[var(--ink-dark)] text-[var(--hanji-cream)]
+          className="px-3 py-2 rounded-[var(--radius-control)] bg-[var(--ink-dark)] text-[var(--hanji-cream)]
                      text-[0.8rem] hover:bg-[var(--clay)] transition-colors
                      disabled:opacity-40"
         >
