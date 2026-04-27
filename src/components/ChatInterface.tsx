@@ -8,6 +8,10 @@ import MessageBubble from './MessageBubble'
 import ChatInput from './ChatInput'
 import TopBar from './TopBar'
 import IconSidebar from './IconSidebar'
+import SlidePanel from './SlidePanel'
+import TranslationComparePanel from './panels/TranslationComparePanel'
+import SearchPanel from './panels/SearchPanel'
+import BrowsePanel from './panels/BrowsePanel'
 
 const WELCOME_MESSAGE: ChatMessage = {
   id: 'welcome',
@@ -19,6 +23,14 @@ const WELCOME_MESSAGE: ChatMessage = {
     { label: '소망의 말씀', prompt: '소망에 대한 말씀을 찾고 싶어요' },
     { label: '오늘의 위로', prompt: '오늘 마음이 힘드네요. 위로의 말씀이 필요해요' },
   ],
+}
+
+const PANEL_TITLES: Record<Exclude<PanelType, 'none'>, string> = {
+  search: '검색',
+  browse: '탐독',
+  themes: '묵상',
+  compare: '번역 비교',
+  original: '원어',
 }
 
 export default function ChatInterface() {
@@ -156,8 +168,54 @@ export default function ChatInterface() {
   }
 
   const handleNewChat = () => {
-    setState(s => ({ ...s, messages: [WELCOME_MESSAGE], activePanel: 'none', error: null }))
+    setState(s => ({
+      ...s,
+      messages: [WELCOME_MESSAGE],
+      activePanel: 'none',
+      activePanelVerse: null,
+      error: null,
+    }))
   }
+
+  const handleClosePanel = () => {
+    setState(s => ({ ...s, activePanel: 'none' }))
+  }
+
+  const handlePickVerse = (verse: VerseData) => {
+    const ref = `${verse.bookNameKo} ${verse.ref.chapter}:${verse.ref.verse}`
+    const quoted = `📖 ${ref} 에 대해 더 깊이 묵상하고 싶어요.\n"${verse.text}"`
+    setState(s => ({ ...s, activePanel: 'none' }))
+    handleSend(quoted)
+  }
+
+  const renderPanelBody = () => {
+    switch (state.activePanel) {
+      case 'compare':
+        return <TranslationComparePanel verseRef={state.activePanelVerse} />
+      case 'search':
+        return <SearchPanel onPickVerse={handlePickVerse} />
+      case 'browse':
+        return <BrowsePanel onPickVerse={handlePickVerse} translation={state.translation} />
+      case 'themes':
+        return (
+          <p className="text-[0.85rem] text-[var(--ink-medium)] italic">
+            묵상 패널은 다음 단계에서 준비됩니다.
+          </p>
+        )
+      case 'original':
+        return (
+          <p className="text-[0.85rem] text-[var(--ink-medium)] italic">
+            원어 분석은 다음 단계에서 준비됩니다.
+          </p>
+        )
+      default:
+        return null
+    }
+  }
+
+  const panelOpen = state.activePanel !== 'none'
+  const panelTitle =
+    state.activePanel !== 'none' ? PANEL_TITLES[state.activePanel] : ''
 
   return (
     <div className="flex flex-col h-screen bg-[var(--hanji-warm)]">
@@ -168,7 +226,11 @@ export default function ChatInterface() {
       />
       <div className="flex flex-1 overflow-hidden">
         <IconSidebar activePanel={state.activePanel} onToggle={handlePanelToggle} />
-        <main className="flex flex-col flex-1 overflow-hidden">
+        <main
+          className={`flex flex-col flex-1 overflow-hidden transition-[margin] duration-200 ${
+            panelOpen ? 'md:mr-[280px]' : ''
+          }`}
+        >
           <div
             className="flex-1 overflow-y-auto px-4 py-4 space-y-4"
             onScroll={(e) => {
@@ -189,6 +251,9 @@ export default function ChatInterface() {
           <ChatInput onSend={handleSend} disabled={state.isLoading} />
         </main>
       </div>
+      <SlidePanel open={panelOpen} title={panelTitle} onClose={handleClosePanel}>
+        {renderPanelBody()}
+      </SlidePanel>
     </div>
   )
 }
