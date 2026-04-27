@@ -17,7 +17,12 @@ export default function MessageBubble({ message, onAction, onSuggestion, hanjaEn
   return (
     <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} gap-1`}>
       {!isUser && (
-        <span className="verse-label px-1">✦ 말씀 길잡이</span>
+        <span className="font-[family-name:var(--font-serif)] italic
+                         text-[0.75rem] text-[var(--ink-medium)] px-1
+                         flex items-center gap-1.5">
+          <span aria-hidden="true" className="text-[var(--clay)] not-italic">✦</span>
+          말씀 길잡이
+        </span>
       )}
       <div
         className={`max-w-[80%] rounded-[var(--radius-paper)] px-4 py-3 text-[0.9rem] leading-relaxed ${
