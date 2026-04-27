@@ -74,23 +74,46 @@ npm run build    # 프로덕션 빌드 확인
 | 테스트 | Vitest + Testing Library + jsdom |
 | 배포 | Vercel |
 
-### 아키텍처 노트: RAG 대신 "Tag-and-Fetch"
+### 아키텍처 노트: 0원 RAG (Phase 4)
 
-이 앱은 일반적인 성경 RAG(임베딩 → pgvector 의미 검색 → 리랭커 → LLM 컨텍스트 주입)를 **의도적으로 사용하지 않습니다**. 대신:
+이 앱은 **31,103개 KRV 구절 전체에 대한 의미 기반 RAG**를 PostgreSQL/pgvector/Redis 없이 Vercel Functions만으로 구현합니다.
 
-1. 사용자 질문을 Gemini에 그대로 전달.
-2. Gemini가 자기 학습 지식으로 적합한 구절을 판단해 `[[VERSE:책:장:절:번역]]` 태그로 출력.
-3. 앱이 태그를 파싱해 [Bolls.life API](https://bolls.life)에서 **정확한 본문 텍스트**를 fetch.
+**파이프라인**:
+
+```
+[빌드 타임 / 1회]
+  Bolls.life KRV 31,103 구절 → Gemini gemini-embedding-001 (768d)
+       ↓
+  L2 unit normalize → int8 양자화
+       ↓
+  public/rag/verses-embed.bin   (~22 MB, 헤더 + Int8Array)
+  public/rag/verses-meta.json.gz (~5-8 MB gzip, 책 매핑 + 구절 메타)
+
+[런타임 / 매 요청]
+  사용자 쿼리 → Gemini embed (RETRIEVAL_QUERY, 768d)
+       ↓
+  Vercel Function 메모리에 인덱스 로드 (cold start 1회, 모듈 스코프 캐시)
+       ↓
+  Float32 query × Int8 vectors 코사인 (in-memory)
+       ↓
+  Top-K 구절 + 본문 + 점수
+       ↓
+  /api/chat: Gemini 채팅에 후보로 주입 → Gemini가 후보 안에서만 인용
+  /api/search?mode=keyword: 후보 그대로 반환 (Gemini 채팅 호출 0회)
+```
 
 **역할 분담**:
-- **어떤 구절이 적합한가** = Gemini의 파라메트릭 지식 (단독 판단)
-- **그 구절의 실제 본문** = Bolls.life가 보장 (외부 API)
+- **어떤 구절이 의미상 가까운가** = `gemini-embedding-001` 임베딩 + 인메모리 코사인
+- **답변 생성** = Gemini 2.5 Flash가 검색된 후보에서만 인용 (할루시네이션 차단)
+- **본문 텍스트 fallback** = Bolls.life (구절 카드 표시용)
 
 **트레이드오프**:
-- ✅ 인프라 0원 — DB·임베딩 모델·벡터 인덱스·리랭커·Redis 전부 미사용
-- ✅ 코드 경량, 운영 단순
-- ⚠️ Gemini가 구절을 잘못 추천할 가능성은 존재 (본문 텍스트는 정확하지만 "이 구절이 그 질문의 정답인가"는 모델 판단에 의존)
-- ⚠️ 의미 검색의 재현율(recall)은 RAG보다 낮을 수 있음
+- ✅ **인프라 0원** — DB·외부 임베딩 서비스·벡터 인덱스·리랭커·Redis 전부 미사용. Vercel Hobby 무료 티어 안에서 완결.
+- ✅ **의미 검색 정확도 확보** — Gemini 학습 지식에만 의존하지 않고, 31k 구절 전체에서 코사인 검색으로 후보 결정.
+- ✅ **할루시네이션 차단** — Gemini가 임의 구절을 "떠올리는" 게 아니라 검색된 후보 안에서만 인용.
+- ⚠️ 단순 dense 검색만 — 하이브리드(BM25), cross-encoder 리랭커 없음. Phase 5 후보.
+
+**인덱스 빌드**: `npm run build:rag` (1회, 약 30-40분, `GEMINI_API_KEY` 필요)
 
 ---
 
