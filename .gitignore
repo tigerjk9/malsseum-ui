@@ -48,3 +48,4 @@ scripts/.rag-build-state.json
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+.gstack/
