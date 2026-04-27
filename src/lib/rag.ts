@@ -47,8 +47,15 @@ let cached: RagIndex | null = null
 let pending: Promise<RagIndex> | null = null
 
 function getBaseUrl(): string {
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`
+  // VERCEL_PROJECT_PRODUCTION_URL points to the production alias on every
+  // deployment, so it is not behind Vercel Deployment Protection. VERCEL_URL
+  // (the per-deployment hostname) IS protected on preview deployments and
+  // returns 401 to internal asset fetches — avoid it.
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+  }
   if (process.env.NEXT_PUBLIC_BASE_URL) return process.env.NEXT_PUBLIC_BASE_URL
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`
   return 'http://localhost:3000'
 }
 
