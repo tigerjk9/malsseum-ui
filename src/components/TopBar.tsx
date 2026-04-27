@@ -1,6 +1,7 @@
 'use client'
 import { TRANSLATION_LABELS } from '@/lib/constants'
 import type { TranslationCode } from '@/lib/types'
+import ThemeToggle from './ThemeToggle'
 
 interface Props {
   translation: TranslationCode
@@ -23,16 +24,19 @@ export default function TopBar({ translation, onTranslationChange, onNewChat }: 
           VERBUM
         </div>
       </button>
-      <select
-        value={translation}
-        onChange={(e) => onTranslationChange(e.target.value as TranslationCode)}
-        className="text-[0.75rem] bg-[var(--clay-light)] text-[var(--ink-medium)] border-none
-                   rounded-xl px-3 py-1 focus:outline-none cursor-pointer"
-      >
-        {TRANSLATIONS.map((t) => (
-          <option key={t} value={t}>{TRANSLATION_LABELS[t]}</option>
-        ))}
-      </select>
+      <div className="flex items-center gap-2">
+        <ThemeToggle />
+        <select
+          value={translation}
+          onChange={(e) => onTranslationChange(e.target.value as TranslationCode)}
+          className="text-[0.75rem] bg-[var(--clay-light)] text-[var(--ink-medium)] border-none
+                     rounded-xl px-3 py-1 focus:outline-none cursor-pointer"
+        >
+          {TRANSLATIONS.map((t) => (
+            <option key={t} value={t}>{TRANSLATION_LABELS[t]}</option>
+          ))}
+        </select>
+      </div>
     </header>
   )
 }
