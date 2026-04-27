@@ -2,16 +2,22 @@
 import { TRANSLATION_LABELS } from '@/lib/constants'
 import type { TranslationCode } from '@/lib/types'
 import ThemeToggle from './ThemeToggle'
+import HanjaToggle from './HanjaToggle'
 
 interface Props {
   translation: TranslationCode
   onTranslationChange: (t: TranslationCode) => void
   onNewChat: () => void
+  hanjaEnabled: boolean
+  onHanjaToggle: (enabled: boolean) => void
 }
 
 const TRANSLATIONS: TranslationCode[] = ['KRV', 'RNKSV', 'NIV', 'ESV', 'KJV']
 
-export default function TopBar({ translation, onTranslationChange, onNewChat }: Props) {
+export default function TopBar({
+  translation, onTranslationChange, onNewChat,
+  hanjaEnabled, onHanjaToggle,
+}: Props) {
   return (
     <header className="flex items-center justify-between px-4 py-2.5
                        border-b border-[var(--clay-border)] bg-[var(--hanji-cream)]
@@ -25,6 +31,7 @@ export default function TopBar({ translation, onTranslationChange, onNewChat }: 
         </div>
       </button>
       <div className="flex items-center gap-2">
+        <HanjaToggle enabled={hanjaEnabled} onChange={onHanjaToggle} />
         <ThemeToggle />
         <select
           value={translation}

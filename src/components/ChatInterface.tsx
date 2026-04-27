@@ -45,6 +45,7 @@ export default function ChatInterface() {
     isLoading: false,
     error: null,
   })
+  const [hanjaEnabled, setHanjaEnabled] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const userScrolledUp = useRef(false)
 
@@ -225,6 +226,8 @@ export default function ChatInterface() {
         translation={state.translation}
         onTranslationChange={(t) => setState(s => ({ ...s, translation: t }))}
         onNewChat={handleNewChat}
+        hanjaEnabled={hanjaEnabled}
+        onHanjaToggle={setHanjaEnabled}
       />
       <div className="flex flex-1 overflow-hidden">
         <IconSidebar activePanel={state.activePanel} onToggle={handlePanelToggle} />
@@ -246,6 +249,7 @@ export default function ChatInterface() {
                 message={msg}
                 onAction={handleAction}
                 onSuggestion={handleSend}
+                hanjaEnabled={hanjaEnabled}
               />
             ))}
             <div ref={messagesEndRef} />

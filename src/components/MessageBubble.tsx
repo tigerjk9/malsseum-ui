@@ -2,14 +2,16 @@
 import type { ChatMessage, PanelType, VerseRef } from '@/lib/types'
 import VerseCard from './VerseCard'
 import SuggestionChips from './SuggestionChips'
+import HanjaText from './HanjaText'
 
 interface Props {
   message: ChatMessage
   onAction: (panel: PanelType, ref: VerseRef) => void
   onSuggestion: (prompt: string) => void
+  hanjaEnabled?: boolean
 }
 
-export default function MessageBubble({ message, onAction, onSuggestion }: Props) {
+export default function MessageBubble({ message, onAction, onSuggestion, hanjaEnabled = false }: Props) {
   const isUser = message.role === 'user'
 
   return (
@@ -25,9 +27,12 @@ export default function MessageBubble({ message, onAction, onSuggestion }: Props
         }`}
       >
         {message.isStreaming ? (
-          <span>{message.content}<span className="animate-pulse">▌</span></span>
+          <span>
+            <HanjaText text={message.content} enabled={hanjaEnabled} />
+            <span className="animate-pulse">▌</span>
+          </span>
         ) : (
-          message.content
+          <HanjaText text={message.content} enabled={hanjaEnabled} />
         )}
       </div>
       {message.verses.map((verse) => (
@@ -35,6 +40,7 @@ export default function MessageBubble({ message, onAction, onSuggestion }: Props
           key={`${verse.ref.book}:${verse.ref.chapter}:${verse.ref.verse}`}
           verse={verse}
           onAction={onAction}
+          hanjaEnabled={hanjaEnabled}
         />
       ))}
       {!message.isStreaming && message.suggestions.length > 0 && (
