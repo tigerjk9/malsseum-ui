@@ -18,6 +18,7 @@ import OriginalLanguagePanel from './panels/OriginalLanguagePanel'
 import HistoryPanel from './panels/HistoryPanel'
 
 const HISTORY_KEY = 'malsseum_history'
+const CURRENT_KEY = 'malsseum_current'
 const MAX_HISTORY = 10
 
 function loadHistory(): SavedConversation[] {
@@ -29,6 +30,20 @@ function loadHistory(): SavedConversation[] {
 
 function persistHistory(history: SavedConversation[]) {
   localStorage.setItem(HISTORY_KEY, JSON.stringify(history))
+}
+
+function loadCurrentSession(): { messages: ChatMessage[]; dialogueMode: DialogueMode } | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = localStorage.getItem(CURRENT_KEY)
+    if (!raw) return null
+    return JSON.parse(raw)
+  } catch { return null }
+}
+
+function saveCurrentSession(messages: ChatMessage[], dialogueMode: DialogueMode) {
+  if (!messages.some(m => m.role === 'user')) return
+  localStorage.setItem(CURRENT_KEY, JSON.stringify({ messages, dialogueMode }))
 }
 
 function makeTitle(messages: ChatMessage[]): string {
@@ -74,7 +89,20 @@ export default function ChatInterface() {
 
   useEffect(() => {
     setHistory(loadHistory())
+    const session = loadCurrentSession()
+    if (session?.messages.some(m => m.role === 'user')) {
+      setState(s => ({
+        ...s,
+        messages: session.messages,
+        dialogueMode: session.dialogueMode ?? 'inductive',
+      }))
+    }
   }, [])
+
+  useEffect(() => {
+    if (state.isLoading) return
+    saveCurrentSession(state.messages, state.dialogueMode)
+  }, [state.messages, state.dialogueMode, state.isLoading])
 
   useEffect(() => {
     if (!userScrolledUp.current) {
@@ -215,6 +243,7 @@ export default function ChatInterface() {
       setHistory(updated)
       persistHistory(updated)
     }
+    localStorage.removeItem(CURRENT_KEY)
     setState(s => ({
       ...s,
       messages: [WELCOME_MESSAGE],
