@@ -1,4 +1,6 @@
-# Vercel 배포 가이드 (Phase 1 MVP)
+# Vercel 배포 가이드
+
+> 초기 작성: Phase 1 MVP (2026-04). Phase 4.5 시점에서 경로/브랜치 갱신.
 
 ## 사전 준비
 
@@ -14,7 +16,7 @@
 ### 1. 프로젝트 디렉토리에서 인증
 
 ```bash
-cd "I:\내 드라이브\Github Desktop\malsseum-ui"
+cd /path/to/malsseum-ui     # 클론 위치
 vercel login
 ```
 
@@ -86,8 +88,9 @@ git push -u origin main
 - [ ] 응답에 구절 카드 (요한일서 1:9 등) 정상 표시
 - [ ] 제안 칩 클릭 → 자동 입력 동작
 - [ ] 번역본 드롭다운 변경 동작
-- [ ] 한지 배경 괘선 + 황토 액센트 시각 확인
+- [ ] 라이트/다크 모드 전환 — 클레이 액센트(verse-label, ✦, ActionTag, 사이드바 활성)가 양 모드에서 모두 또렷한지
 - [ ] 모바일 뷰포트 (375px) 깨짐 없음
+- [ ] 패널 열기/닫기 시 transform 슬라이드 부드러움
 
 ---
 

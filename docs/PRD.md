@@ -4,7 +4,7 @@
 
 **Live**: https://malsseum-ui.vercel.app
 **Repo**: https://github.com/tigerjk9/malsseum-ui (default branch: `main`)
-**Status**: Phase 4 shipped (2026-04-27)
+**Status**: Phase 4 (RAG) + Phase 4.5 (design polish) shipped (2026-04-27)
 
 ---
 
@@ -129,6 +129,7 @@
 | `v0.2.0-phase2` | 탐독 패널 | SlidePanel, 번역 비교, 검색 |
 | `v0.3.0-phase3` | 깊이 도구 | 원어 분석, 한자 토글, 다크모드, BottomNav, 12 테마 |
 | (미태그) | Phase 4 | **RAG** (`gemini-embedding-001` + int8 quantized index + in-memory cosine) |
+| (미태그) | Phase 4.5 | **디자인 폴리시** — Inter→IBM Plex Sans KR, 반경 토큰 위계, 9개 SVG 아이콘 (emoji 제거), 한지 노이즈 텍스처, 다크 모드 클레이 액센트 AA 충족, 40px 터치 타깃, `prefers-reduced-motion` 가드, transform-only 패널 슬라이드, 12 atomic 커밋 |
 
 ---
 
@@ -203,6 +204,7 @@ Q: 믿음
 - **검색 점수 확신도 게이팅**: cosine < 0.55 인 후보는 제외하고 사용자에게 "관련 구절을 찾지 못했다" 안내. (지금은 무조건 top-K 반환 → 부적합 후보를 LLM이 인용할 위험)
 - **Per-verse context window**: 임베딩 시 전후 1-2 구절을 합쳐 인덱싱 (인덱스 크기 동일, 의미 더 풍부).
 - **Query expansion**: 사용자 쿼리를 Gemini로 1회 paraphrase → 2개 임베딩 평균. recall 개선.
+- **한지 노이즈 가시성 복구**: Phase 4.5에서 추가한 `body::before` 한지 섬유 텍스처가 `ChatInterface` 솔리드 bg에 가려져 있음. 메시지 스크롤 영역에 노출되도록 조정.
 
 ### 6.2 중간 노력 / 중간 가치
 - **하이브리드 (BM25 + dense)**: KRV 본문에 대해 inverted index (Lunr/MiniSearch 류) + RRF 융합.

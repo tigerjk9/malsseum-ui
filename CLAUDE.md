@@ -15,9 +15,10 @@ Korean Bible study webapp on Next.js 16 (App Router) + React 19 + Tailwind 4, de
 
 - **Framework**: Next.js 16 App Router, React 19, TypeScript 5
 - **Styling**: Tailwind CSS 4 + CSS variables (한지 design tokens)
+- **Fonts**: IBM Plex Sans KR (UI) + Noto Serif KR (verse), both `next/font/google`
 - **AI**: `@google/generative-ai` (Gemini 2.5 Flash for chat) + REST direct (`gemini-embedding-001` for RAG)
 - **Bible data**: Bolls.life + GetBible v2 (no DB)
-- **Tests**: Vitest + Testing Library + jsdom
+- **Tests**: Vitest + Testing Library + jsdom (108 tests, must stay green)
 - **Deploy**: Vercel (Hobby), `main` branch auto-deploys
 
 **Intentionally absent**: PostgreSQL, pgvector, Redis, external embedding services, rerankers. RAG runs entirely on Vercel Functions over a static `public/rag/` index.
@@ -27,8 +28,20 @@ Korean Bible study webapp on Next.js 16 (App Router) + React 19 + Tailwind 4, de
 - **Routes** are Next.js App Router under `src/app/`. API routes are `src/app/api/<name>/route.ts`, all `runtime = 'nodejs'`.
 - **Library code** lives in `src/lib/` (no React). Data tables in `src/lib/data/`. Tests next to code in `__tests__/`.
 - **Components** in `src/components/`, panel components in `src/components/panels/`.
+- **Icons** are inline monoline SVGs in `src/components/icons.tsx` — no emoji as chrome (data-level emoji in `themes.ts` is OK).
 - **No DB.** All retrieval is `public/rag/` static assets fetched at runtime (cached in module scope per Function instance).
 - **BYO API key** pattern: every Gemini-using API route reads `x-gemini-api-key` header first, falls back to `process.env.GEMINI_API_KEY`.
+
+## Design tokens
+
+Defined in `src/app/globals.css`. Light mode in `:root`, dark mode in `.dark`.
+
+- **Colors (semantic)**: `--hanji-cream` (TopBar / sidebar surface), `--hanji-warm` (body), `--paper-white` (cards), `--ink-dark` (primary text), `--ink-medium` (secondary text), `--clay` (accent / verse-label / focus ring), `--clay-light` (filled chip / hover bg), `--clay-border`, `--suggestion-bg`.
+- **Dark mode**: every accent (`--clay`, `--clay-light`, `--clay-border`, `--suggestion-bg`) is overridden — naive surface flip is not enough. The light-mode brown clay (`#8b6343`) drops to ~2.3:1 on dark bg; dark mode uses a brighter clay (`#d6a87d`, ~6.7:1 AA).
+- **Radius scale**: `--radius-paper` (8px, surfaces), `--radius-control` (10px, inputs/buttons), `--radius-pill` (9999px, chips). Apply via `rounded-[var(--radius-*)]` (Tailwind arbitrary value, not the named utility — v4 utility generation for token names is unreliable here).
+- **Background**: `body::before` carries an SVG `feTurbulence` hanji fiber overlay (multiply blend in light, screen in dark). NOTE: currently mostly hidden by `ChatInterface` root's solid `bg-[var(--hanji-warm)]`; deferred follow-up to make it visible inside the chat scroll area.
+- **Motion**: only `transform` and `opacity` are animated. `transition-[margin]` is banned. Panel slide uses `panel-enter` keyframes (`translateX 100%→0`, 220ms). `prefers-reduced-motion` collapses all animation/transition durations to ~0ms globally.
+- **Focus**: global `*:focus-visible { outline: 2px solid var(--clay); outline-offset: 2px }`. Don't add `focus:outline-none` on form controls — it overrides the global ring. ChatInput textarea is the one exception (parent uses `focus-within:border-[var(--clay)]` instead).
 
 ## Key files
 
@@ -41,6 +54,8 @@ Korean Bible study webapp on Next.js 16 (App Router) + React 19 + Tailwind 4, de
 | `src/lib/data/chapter-counts.ts` | 66 books × chapter counts. |
 | `src/lib/data/themes.ts` | 12 curated themes (search `mode=theme`). |
 | `src/lib/data/hanja-glossary.ts` | 30 theological terms with hanja. |
+| `src/app/globals.css` | Design tokens (light + dark), hanji noise overlay, motion guards. Single source of truth for color/radius/animation tokens. |
+| `src/components/icons.tsx` | 9 inline monoline SVG icons. Add new icons here, not as emoji. |
 | `scripts/build-rag-index.mjs` | One-time RAG index builder (`npm run build:rag`). |
 | `scripts/smoke-rag.mjs` | Local RAG quality smoke test. |
 | `public/rag/verses-embed.bin` | int8 embedding index (22.78 MB, committed to git). |
@@ -71,6 +86,10 @@ npm run build:rag    # rebuild RAG index (~50min, needs GEMINI_API_KEY)
 - **Don't fetch internal assets via `VERCEL_URL`** in server-side code. Use `VERCEL_PROJECT_PRODUCTION_URL`.
 - **Don't add Redis/pgvector/external embedding services** without an explicit reason. The "0원 인프라" constraint is a feature, not a limitation. See PRD §1 차별점.
 - **Don't introduce auth or user accounts**. Project is intentionally session-less. BYO API key is the only personalization vector.
+- **Don't add `focus:outline-none` on new form controls**. It silently kills keyboard focus rings (it overrides the global `*:focus-visible`). Either omit it, or pair with an explicit `focus-within` indicator on a parent.
+- **Don't animate layout properties** (`margin`, `width`, `height`, `top`, `left`, `padding`, `grid-template-*`). Use `transform` / `opacity`. The hanji aesthetic doesn't ask for elaborate motion anyway.
+- **Don't reach for emoji** for new chrome icons. Add an SVG to `icons.tsx`. Color emoji clash with the muted palette.
+- **Don't add a new accent color without dark-mode override**. A brown/clay tone that reads on light cream often falls below AA on dark surfaces. Verify `--clay` pattern: brighten the accent in `.dark`, don't just flip surfaces.
 
 ## Related projects (separate repos)
 

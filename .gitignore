@@ -49,3 +49,47 @@ scripts/.rag-build-state.json
 *.tsbuildinfo
 next-env.d.ts
 .gstack/
+
+# OS — macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# OS — Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# OS — Linux
+*~
+.fuse_hidden*
+.Trash-*
+.directory
+
+# IDE — VS Code
+.vscode/
+.history/
+
+# IDE — JetBrains (WebStorm/IntelliJ)
+.idea/
+*.iml
+
+# Editor — vim/emacs
+*.swp
+*.swo
+*.swn
+*.bak
+\#*\#
+.\#*
+
+# Local logs/temp
+*.log
+*.tmp
+*.temp
+.cache/

@@ -15,10 +15,9 @@
 - **인라인 구절 카드** — `[[VERSE:책:장:절:번역]]` 태그를 자동 파싱해 Bolls.life에서 본문 조회
 - **다국어 번역본** — KRV · RNKSV · NIV · ESV · KJV
 - **제안 칩** — 응답 끝의 `SUGGESTIONS:` 라인을 다음 단계 버튼으로 표시
-- **한지 디자인 시스템** — Noto Serif KR + 미세 괘선 텍스처 + 황토 액센트 (`#8b6343`)
 
 ### Phase 2 — 탐독 패널
-- **SlidePanel 프레임워크** — 우측에서 슬라이드되는 컨텍스트 패널
+- **SlidePanel 프레임워크** — 우측에서 슬라이드되는 컨텍스트 패널 (transform 애니메이션, 220ms)
 - **번역 비교** — 5개 번역본 동시 표시
 - **검색·탐독** — Gemini 키워드 모드 ↔ 로컬 12개 테마 카탈로그 모드 토글
 
@@ -26,10 +25,22 @@
 - **원어 분석** — 구절을 선택하면 Gemini가 헬라어/히브리어 핵심 단어 3~5개를 BDAG/HALOT 사전 기준으로 분석 (음역·의미·본문 뉘앙스 포함)
 - **교차 참조** — 관련 구절 자동 연결
 - **한자 토글** — 30개 핵심 신학 용어에 한자 ruby 주석 (예: 은혜<small>(恩惠)</small>, 속죄<small>(贖罪)</small>)
-- **다크모드** — 시스템 + 토글, FOUC 방지
+- **다크모드** — 시스템 + 토글, FOUC 방지, 다크 모드 전용 클레이 액센트 토큰
 - **모바일 BottomNav** — 반응형 하단 네비게이션
 - **테마 카탈로그** — 12개 핵심 테마 × 큐레이션 구절 모음
 - **검색 모드 토글** — 키워드(Gemini) / 테마(로컬)
+
+### Phase 4 — 0원 RAG (2026-04-27)
+- **31,103 KRV 구절 의미 검색** — `gemini-embedding-001` (768d) + int8 양자화 + 인메모리 코사인
+- **할루시네이션 차단** — Gemini가 RAG top-K 후보 안에서만 인용
+- **인프라 0원** — DB·외부 임베딩·리랭커·Redis 미사용, Vercel Hobby 무료 티어 안에서 완결
+
+### Phase 4.5 — 디자인 폴리시
+- **한지 미감 강화** — IBM Plex Sans KR (UI) + Noto Serif KR (구절), SVG 한지 섬유 노이즈 텍스처
+- **반경 토큰 위계** — `--radius-paper / --radius-control / --radius-pill` 일관 적용
+- **모노라인 SVG 아이콘 세트** — emoji 제거, `src/components/icons.tsx`에 9개 아이콘
+- **다크 모드 가독성** — `--clay` 액센트 다크 모드 전용 톤(#d6a87d) 으로 AA 충족 (~6.7:1)
+- **접근성** — 40px 터치 타깃, `prefers-reduced-motion` 가드, focus-visible 링 복원, transform-only 애니메이션
 
 ---
 
@@ -70,7 +81,7 @@ npm run build    # 프로덕션 빌드 확인
 | 스타일 | Tailwind CSS 4 + CSS 변수 |
 | AI | `@google/generative-ai` (Gemini 2.5 Flash) |
 | 성경 데이터 | [Bolls.life](https://bolls.life) + [GetBible v2](https://getbible.net) |
-| 폰트 | Noto Serif KR (본문) + Inter (UI) |
+| 폰트 | Noto Serif KR (본문) + IBM Plex Sans KR (UI) |
 | 테스트 | Vitest + Testing Library + jsdom |
 | 배포 | Vercel |
 
@@ -136,32 +147,41 @@ npm run build    # 프로덕션 빌드 확인
 ```
 src/
 ├── app/
-│   ├── layout.tsx           # 폰트 로드, 다크모드 스크립트
-│   ├── page.tsx             # ChatInterface 마운트
-│   ├── globals.css          # 디자인 토큰 + 괘선 + 다크모드
+│   ├── layout.tsx                    # 폰트 로드, 다크모드 FOUC 차단
+│   ├── page.tsx                      # ChatInterface 마운트
+│   ├── globals.css                   # 디자인 토큰 + 한지 노이즈 + 다크모드 + 모션 가드
 │   └── api/
-│       ├── chat/            # Gemini SSE
-│       ├── verse/           # 단일 구절
-│       ├── search/          # 키워드/테마 검색
-│       ├── original/        # 헬라어/히브리어 분석
-│       └── browse/          # 탐독
+│       ├── chat/route.ts             # Gemini SSE + RAG 후보 주입
+│       ├── verse/route.ts            # 단일 구절 (Bolls.life)
+│       ├── search/route.ts           # 키워드(RAG) / 테마(로컬) 검색
+│       ├── original/route.ts         # 헬라어/히브리어 원어 분석
+│       └── browse/route.ts           # 책/장/절 탐색
 ├── components/
-│   ├── ChatInterface.tsx
-│   ├── MessageBubble.tsx
-│   ├── VerseCard.tsx
-│   ├── SuggestionChips.tsx
-│   ├── SlidePanel.tsx       # Phase 2 패널 프레임
-│   ├── OriginalPanel.tsx    # Phase 3 원어 분석
-│   ├── HanjaToggle.tsx      # Phase 3 한자 ruby
-│   ├── BottomNav.tsx        # Phase 3 모바일
-│   └── ...
-└── lib/
-    ├── gemini.ts            # 시스템 프롬프트 3종 + 모델 팩토리
-    ├── bible-api.ts         # Bolls.life + GetBible 클라이언트
-    ├── verse-parser.ts      # [[VERSE:...]] 파서
-    ├── hanja.ts             # 30개 신학 용어 한자 매핑
-    ├── themes.ts            # 12개 테마 카탈로그
-    └── constants.ts
+│   ├── ChatInterface.tsx             # 최상위 채팅 컨테이너
+│   ├── ChatInput.tsx, MessageBubble.tsx, VerseCard.tsx, SuggestionChips.tsx
+│   ├── TopBar.tsx, BottomNav.tsx, IconSidebar.tsx, SlidePanel.tsx
+│   ├── ThemeProvider.tsx, ThemeToggle.tsx
+│   ├── HanjaText.tsx, HanjaToggle.tsx
+│   ├── icons.tsx                     # Phase 4.5 모노라인 SVG 아이콘 9종
+│   └── panels/
+│       ├── BrowsePanel.tsx           # 책/장 탐색
+│       ├── SearchPanel.tsx           # 키워드/테마 검색
+│       ├── ThemesPanel.tsx           # 12 테마 카탈로그
+│       ├── TranslationComparePanel.tsx
+│       └── OriginalLanguagePanel.tsx
+├── lib/
+│   ├── gemini.ts                     # 시스템 프롬프트 + 모델 팩토리
+│   ├── rag.ts                        # Phase 4 RAG: 인덱스 로드, 임베드, 코사인
+│   ├── bible-api.ts                  # Bolls.life + GetBible HTTP 클라이언트
+│   ├── verse-parser.ts               # [[VERSE:Book:Ch:Vs:Trans]] 파서
+│   ├── theme.ts, types.ts, constants.ts
+│   └── data/
+│       ├── chapter-counts.ts         # 66 books × 장 수
+│       ├── themes.ts                 # 12 테마 큐레이션
+│       └── hanja-glossary.ts         # 30개 신학 용어 한자
+└── public/rag/
+    ├── verses-embed.bin              # int8 임베딩 인덱스 (~22 MB)
+    └── verses-meta.json.gz           # 구절 메타 (~1.4 MB)
 ```
 
 ---
@@ -171,7 +191,7 @@ src/
 ### Vercel (현재 운영)
 1. https://vercel.com/new 에서 GitHub repo import
 2. **Environment Variables** → `GEMINI_API_KEY` 추가 (Production · Preview · Development 모두)
-3. Deploy → 자동으로 `master` 브랜치 push 감지하여 빌드
+3. Deploy → 자동으로 `main` 브랜치 push 감지하여 빌드
 
 ### 로컬 → Vercel CLI (선택)
 ```bash
@@ -191,6 +211,8 @@ vercel --prod
 | `v0.1.0-phase1` | 대화형 코어 | Gemini 채팅, 구절 카드, 5개 번역본 |
 | `v0.2.0-phase2` | 탐독 패널 | SlidePanel, 번역 비교, 검색 |
 | `v0.3.0-phase3` | 깊이 도구 | 원어 분석, 한자 토글, 다크모드, BottomNav, 12 테마 |
+| (미태그) | Phase 4 | 0원 RAG (`gemini-embedding-001` + int8 양자화 + 인메모리 코사인) |
+| (미태그) | Phase 4.5 | 디자인 폴리시 (IBM Plex Sans KR, 반경 토큰, SVG 아이콘, 다크 모드 가독성) |
 
 ---
 
