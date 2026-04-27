@@ -53,7 +53,7 @@ export function parseSuggestions(text: string): {
   return { clean, chips }
 }
 
-export const SEARCH_SYSTEM_PROMPT = `당신은 성경 검색 도우미입니다. 사용자의 검색어와 가장 관련성 높은 성경 구절 5개를 찾아주세요.
+export const SEARCH_SYSTEM_PROMPT = `당신은 성경 검색 도우미입니다. 사용자의 검색어(한글/영어 모두 가능)와 가장 관련성 높은 성경 구절 5개를 찾아주세요.
 
 **필수 응답 형식:**
 - 각 구절을 [[VERSE:영문책명:장:절:KRV]] 형식으로만 응답하세요.
@@ -69,6 +69,7 @@ export const SEARCH_SYSTEM_PROMPT = `당신은 성경 검색 도우미입니다.
 
 **책명 규칙:**
 - 영문 책명만 사용 (Genesis, Exodus, ..., 1John, 2John, 3John, Revelation 등)
+- 한글 책명(요한복음, 시편 등) 절대 금지 — 영문만.
 - 번역코드는 항상 KRV.`
 
 export function getSearchModel(apiKey?: string) {
@@ -79,7 +80,7 @@ export function getSearchModel(apiKey?: string) {
     model: 'gemini-2.5-flash',
     systemInstruction: SEARCH_SYSTEM_PROMPT,
     generationConfig: {
-      maxOutputTokens: 256,
+      maxOutputTokens: 512,
       temperature: 0.3,
     },
   })
@@ -87,26 +88,36 @@ export function getSearchModel(apiKey?: string) {
 
 export const ORIGINAL_SYSTEM_PROMPT = `당신은 성경 원어(헬라어/히브리어) 분석 도우미입니다.
 사용자가 제공한 구절(Bible reference + KRV 본문)에 대해, 핵심 단어 3-5개를 골라
-다음 JSON 스키마로만 응답하세요 (마크다운 코드 블록 금지, 순수 JSON만):
+순수 JSON으로만 응답하세요. 마크다운 코드 블록(\`\`\`) 절대 금지, 모든 키와 문자열은 큰따옴표 필수.
 
+**완전한 응답 예시 (이 구조 그대로 따르세요):**
 {
-  "language": "Greek" 또는 "Hebrew",
+  "language": "Greek",
   "words": [
     {
-      "korean": "한국어 단어",
-      "original": "원어 단어 (그리스어/히브리어 문자)",
-      "transliteration": "로마자 음역",
-      "meaning": "1-2문장 의미 설명",
-      "context": "이 본문에서의 뉘앙스 (선택)"
+      "korean": "사랑",
+      "original": "ἀγάπη",
+      "transliteration": "agapē",
+      "meaning": "조건 없는 헌신적 사랑. 하나님의 본성을 나타내는 신약의 핵심 어휘.",
+      "context": "요한복음 3:16에서 하나님의 자기희생적 사랑을 가리킨다."
+    },
+    {
+      "korean": "세상",
+      "original": "κόσμος",
+      "transliteration": "kosmos",
+      "meaning": "질서 있는 우주, 또는 인류 전체.",
+      "context": "여기서는 죄에 빠진 인류 전체를 의미한다."
     }
   ]
 }
 
 규칙:
-- 신약(마태~계시록) → Greek, 구약(창세기~말라기) → Hebrew
-- 확실하지 않은 단어는 절대 포함하지 말 것 (환각 금지)
-- 단어 의미는 표준 사전(BDAG/HALOT) 기반 일반 설명에 한정
-- 신학적 해석/주석은 제외 — 단어 의미만`
+- 신약(마태~계시록) → "Greek", 구약(창세기~말라기) → "Hebrew"
+- 확실하지 않은 단어는 절대 포함하지 말 것 (환각 금지).
+- 단어 의미는 표준 사전(BDAG/HALOT) 기반 일반 설명에 한정.
+- 신학적 해석/주석은 제외 — 단어 의미만.
+- "context" 필드는 선택이지만 포함 권장.
+- 응답은 JSON 객체 하나만, 앞뒤에 어떤 텍스트도 추가하지 말 것.`
 
 export function getOriginalModel(apiKey?: string) {
   const key = apiKey ?? process.env.GEMINI_API_KEY

@@ -36,7 +36,21 @@ export async function GET(req: NextRequest) {
       `구절: ${book} ${chapter}:${verse}\n본문(KRV): ${verseData.text}`
     )
     const text = result.response.text()
-    const data = JSON.parse(text)
+    const cleaned = text
+      .replace(/^\s*```(?:json)?\s*/i, '')
+      .replace(/\s*```\s*$/i, '')
+      .trim()
+    let data: { language: string; words: unknown[] }
+    try {
+      data = JSON.parse(cleaned)
+    } catch {
+      const start = cleaned.indexOf('{')
+      const end = cleaned.lastIndexOf('}')
+      if (start === -1 || end === -1 || end <= start) {
+        throw new Error('Gemini가 유효한 JSON을 반환하지 않았습니다.')
+      }
+      data = JSON.parse(cleaned.slice(start, end + 1))
+    }
     return NextResponse.json({
       ref: `${book}:${chapter}:${verse}`,
       bookNameKo: verseData.bookNameKo,
