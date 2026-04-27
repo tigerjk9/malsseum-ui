@@ -17,7 +17,7 @@ export default function MessageBubble({ message, onAction, onSuggestion, hanjaEn
   const isUser = message.role === 'user'
 
   const { clean } = parseSuggestions(message.content)
-  const cleanContent = stripVerseTags(clean)
+  const cleanContent = stripVerseTags(clean).replace(/\n{2,}/g, '\n')
 
   if (isUser) {
     return (
@@ -39,6 +39,12 @@ export default function MessageBubble({ message, onAction, onSuggestion, hanjaEn
         <span aria-hidden="true" className="not-italic text-[var(--clay)]/70">✦</span>
         말씀 길잡이
       </span>
+      {message.verses.map((verse) => (
+        <div key={`${verse.ref.book}:${verse.ref.chapter}:${verse.ref.verse}`}
+             className="w-full max-w-[88%]">
+          <VerseCard verse={verse} onAction={onAction} hanjaEnabled={hanjaEnabled} />
+        </div>
+      ))}
       <div className="max-w-[88%] text-[0.9rem] leading-[1.85] text-[var(--ink-dark)] px-1 whitespace-pre-line">
         {message.isStreaming ? (
           <span>
@@ -53,12 +59,6 @@ export default function MessageBubble({ message, onAction, onSuggestion, hanjaEn
           <HanjaText text={cleanContent} enabled={hanjaEnabled} />
         )}
       </div>
-      {message.verses.map((verse) => (
-        <div key={`${verse.ref.book}:${verse.ref.chapter}:${verse.ref.verse}`}
-             className="w-full max-w-[88%]">
-          <VerseCard verse={verse} onAction={onAction} hanjaEnabled={hanjaEnabled} />
-        </div>
-      ))}
       {!message.isStreaming && message.suggestions.length > 0 && (
         <div className="px-1">
           <SuggestionChips chips={message.suggestions} onSelect={onSuggestion} />
