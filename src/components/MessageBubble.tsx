@@ -39,7 +39,7 @@ export default function MessageBubble({ message, onAction, onSuggestion, hanjaEn
         <span aria-hidden="true" className="not-italic text-[var(--clay)]/70">✦</span>
         말씀 길잡이
       </span>
-      <div className="max-w-[88%] text-[0.9rem] leading-[1.85] text-[var(--ink-dark)] px-1">
+      <div className="max-w-[88%] text-[0.9rem] leading-[1.85] text-[var(--ink-dark)] px-1 whitespace-pre-line">
         {message.isStreaming ? (
           <span>
             <HanjaText text={cleanContent} enabled={hanjaEnabled} />
