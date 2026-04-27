@@ -1,13 +1,14 @@
 import { NextRequest } from 'next/server'
 import { getModel, buildGeminiContents, parseSuggestions } from '@/lib/gemini'
 import { extractVerseRefs, stripVerseTags } from '@/lib/verse-parser'
-import { retrieve } from '@/lib/rag'
+import { retrieve, expandQuery } from '@/lib/rag'
 import type { ChatMessage, StreamChunk } from '@/lib/types'
 
 export const runtime = 'nodejs'
 export const maxDuration = 60
 
 const RAG_TOP_K = 10
+const RAG_SCORE_THRESHOLD = 0.35
 
 function encode(chunk: StreamChunk): string {
   return `data: ${JSON.stringify(chunk)}\n\n`
@@ -46,16 +47,19 @@ export async function POST(req: NextRequest) {
         controller.enqueue(new TextEncoder().encode(encode(chunk)))
 
       try {
-        // Find the latest user message to drive retrieval.
+        // Find the latest user message to drive retrieval and expansion.
         const lastUser = [...body.messages].reverse().find((m) => m.role === 'user')
-        const queryText = lastUser?.rawContent ?? lastUser?.content ?? ''
+        const lastUserText = lastUser?.rawContent ?? lastUser?.content ?? ''
 
         // Run RAG retrieval. Failures here should not kill the chat — fall back to bare LLM.
         let ragBlock = ''
         const apiKey = userApiKey ?? process.env.GEMINI_API_KEY ?? ''
-        if (queryText.trim() && apiKey) {
+        if (lastUserText.trim() && apiKey) {
           try {
-            const hits = await retrieve(queryText, RAG_TOP_K, apiKey)
+            const expanded = await expandQuery(lastUserText, apiKey)
+            const allHits = await retrieve(expanded, RAG_TOP_K, apiKey)
+            const hits = allHits.filter((h) => h.score >= RAG_SCORE_THRESHOLD)
+            console.log(`[chat] RAG: expanded="${expanded.slice(0, 80)}" hits=${allHits.length} above_threshold=${hits.length}`)
             ragBlock = buildRagBlock(hits)
           } catch (err) {
             console.error('[chat] RAG retrieval failed, continuing without:', err)

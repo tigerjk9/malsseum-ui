@@ -234,7 +234,7 @@ export default function ChatInterface() {
         <main
           className={`flex flex-col flex-1 overflow-hidden ${
             panelOpen ? 'md:mr-[280px]' : ''
-          }`}
+          } pb-14 md:pb-0`}
         >
           <div
             className="flex-1 overflow-y-auto px-4 py-4 pb-20 md:pb-4 space-y-4"

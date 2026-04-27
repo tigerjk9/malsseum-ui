@@ -183,6 +183,41 @@ export function topKVectors(query: Float32Array, k: number, idx: RagIndex): Scor
   return heap.sort((a, b) => b.score - a.score)
 }
 
+// Expand a short theological query into related Korean keywords via Gemini.
+// Falls back to the original query on error or timeout.
+export async function expandQuery(query: string, apiKey: string): Promise<string> {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 3000)
+  try {
+    const url =
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent` +
+      `?key=${encodeURIComponent(apiKey)}`
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal: controller.signal,
+      body: JSON.stringify({
+        contents: [{
+          parts: [{
+            text: `다음 성경 검색 쿼리와 신학적으로 관련된 한국어 키워드 8개를 추출하세요.\n공백으로 구분된 키워드만 한 줄로 출력하세요. 설명 없이.\n\n쿼리: ${query}`,
+          }],
+        }],
+        generationConfig: { maxOutputTokens: 60, temperature: 0 },
+      }),
+    })
+    if (!res.ok) return query
+    const data = await res.json() as {
+      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>
+    }
+    const keywords = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim()
+    return keywords ? `${query} ${keywords}` : query
+  } catch {
+    return query
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
 export async function retrieve(
   query: string,
   k: number,

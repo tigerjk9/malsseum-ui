@@ -9,16 +9,25 @@ interface Props {
 export default function SuggestionChips({ chips, onSelect }: Props) {
   if (!chips.length) return null
   return (
-    <div className="flex gap-2 flex-wrap mt-2">
-      {chips.map((chip) => (
+    <div className="flex flex-col gap-1.5 mt-3 items-start">
+      {chips.map((chip, i) => (
         <button
           key={chip.label}
           onClick={() => onSelect(chip.prompt)}
-          className="text-[0.75rem] border border-[var(--clay-border)] text-[var(--ink-medium)]
-                     bg-[var(--suggestion-bg)] rounded-[var(--radius-pill)] px-4 py-1.5
-                     hover:border-[var(--clay)] hover:text-[var(--clay)] transition-colors"
+          className="group flex items-center gap-2 text-left
+                     text-[0.8rem] text-[var(--ink-medium)]
+                     hover:text-[var(--clay)] transition-colors duration-150
+                     animate-fade-in"
+          style={{ animationDelay: `${i * 60}ms` }}
         >
-          {chip.label}
+          <span className="text-[var(--clay-border)] group-hover:text-[var(--clay)]
+                           transition-colors text-[0.7rem] leading-none mt-px">
+            →
+          </span>
+          <span className="border-b border-transparent group-hover:border-[var(--clay)]/40
+                           transition-colors leading-relaxed">
+            {chip.label}
+          </span>
         </button>
       ))}
     </div>

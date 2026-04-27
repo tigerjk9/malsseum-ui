@@ -25,8 +25,10 @@ export default function BottomNav({ activePanel, onToggle, onHome }: Props) {
   return (
     <nav
       className="md:hidden fixed bottom-0 left-0 right-0 z-30
-                 bg-[var(--paper-white)] border-t border-[var(--clay-border)]
-                 flex justify-around items-center h-14"
+                 bg-[var(--hanji-cream)]/90 backdrop-blur-md
+                 border-t border-[var(--clay-border)]/60
+                 flex justify-around items-center h-14
+                 safe-area-inset-bottom"
       aria-label="하단 탭 네비게이션"
     >
       {TABS.map((tab) => {
@@ -42,12 +44,21 @@ export default function BottomNav({ activePanel, onToggle, onHome }: Props) {
             onClick={handleClick}
             aria-current={isActive ? 'page' : undefined}
             aria-label={tab.label}
-            className={`flex flex-col items-center gap-0.5 px-3 py-1
-                        text-[0.7rem] transition-colors min-w-16
-                        ${isActive ? 'text-[var(--clay)]' : 'text-[var(--ink-medium)]'}`}
+            className={`flex flex-col items-center gap-0.5 px-3 py-2
+                        text-[0.65rem] tracking-wide transition-all duration-150 min-w-16
+                        ${isActive
+                          ? 'text-[var(--clay)]'
+                          : 'text-[var(--ink-medium)]/60 hover:text-[var(--ink-medium)]'
+                        }`}
           >
-            <Icon width={20} height={20} />
-            <span>{tab.label}</span>
+            <div className="relative">
+              <Icon width={20} height={20} />
+              {isActive && (
+                <span className="absolute -bottom-1 left-1/2 -translate-x-1/2
+                                 w-1 h-1 rounded-full bg-[var(--clay)]" />
+              )}
+            </div>
+            <span className="mt-1">{tab.label}</span>
           </button>
         )
       })}

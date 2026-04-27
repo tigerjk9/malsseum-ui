@@ -21,7 +21,7 @@ describe('MessageBubble', () => {
       <MessageBubble message={userMsg} onAction={vi.fn()} onSuggestion={vi.fn()} />
     )
     expect(screen.getByText('용서에 대해 알고 싶어요')).toBeInTheDocument()
-    expect(container.firstChild).toHaveClass('items-end')
+    expect(container.firstChild).toHaveClass('justify-end')
   })
 
   it('AI 메시지 — 말씀 길잡이 레이블', () => {

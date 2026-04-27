@@ -14,45 +14,52 @@ interface Props {
 export default function MessageBubble({ message, onAction, onSuggestion, hanjaEnabled = false }: Props) {
   const isUser = message.role === 'user'
 
+  const cleanContent = message.content.replace(/SUGGESTIONS:\s*.+$/m, '').trimEnd()
+
+  if (isUser) {
+    return (
+      <div className="flex justify-end animate-fade-in">
+        <div className="max-w-[78%] rounded-2xl rounded-br-sm
+                        bg-[var(--clay-light)] px-4 py-2.5
+                        text-[0.875rem] leading-relaxed text-[var(--ink-dark)]">
+          <HanjaText text={cleanContent} enabled={hanjaEnabled} />
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} gap-1`}>
-      {!isUser && (
-        <span className="font-[family-name:var(--font-serif)] italic
-                         text-[0.75rem] text-[var(--ink-medium)] px-1
-                         flex items-center gap-1.5">
-          <span aria-hidden="true" className="text-[var(--clay)] not-italic">✦</span>
-          말씀 길잡이
-        </span>
-      )}
-      <div
-        className={`max-w-[80%] rounded-[var(--radius-paper)] px-4 py-3 text-[0.9rem] leading-relaxed ${
-          isUser
-            ? 'rounded-br-sm bg-[var(--clay-light)] text-[var(--ink-dark)]'
-            : 'rounded-bl-sm border-l-2 border-[var(--clay)] bg-[var(--clay-light)] text-[var(--ink-dark)]'
-        }`}
-      >
+    <div className="flex flex-col items-start gap-1 animate-fade-in">
+      <span className="font-[family-name:var(--font-serif)] italic
+                       text-[0.7rem] text-[var(--clay)]/70 px-1
+                       flex items-center gap-1.5">
+        <span aria-hidden="true" className="not-italic text-[var(--clay)]/50">✦</span>
+        말씀 길잡이
+      </span>
+      <div className="max-w-[88%] text-[0.9rem] leading-[1.85] text-[var(--ink-dark)] px-1">
         {message.isStreaming ? (
           <span>
-            <HanjaText text={message.content} enabled={hanjaEnabled} />
+            <HanjaText text={cleanContent} enabled={hanjaEnabled} />
             <span
               aria-hidden="true"
-              className="inline-block w-[2px] h-[1em] mx-0.5 -mb-[0.15em] bg-current align-middle animate-pulse"
+              className="inline-block w-[2px] h-[1em] mx-0.5 -mb-[0.15em]
+                         bg-[var(--clay)]/60 align-middle animate-pulse"
             />
           </span>
         ) : (
-          <HanjaText text={message.content} enabled={hanjaEnabled} />
+          <HanjaText text={cleanContent} enabled={hanjaEnabled} />
         )}
       </div>
       {message.verses.map((verse) => (
-        <VerseCard
-          key={`${verse.ref.book}:${verse.ref.chapter}:${verse.ref.verse}`}
-          verse={verse}
-          onAction={onAction}
-          hanjaEnabled={hanjaEnabled}
-        />
+        <div key={`${verse.ref.book}:${verse.ref.chapter}:${verse.ref.verse}`}
+             className="w-full max-w-[88%]">
+          <VerseCard verse={verse} onAction={onAction} hanjaEnabled={hanjaEnabled} />
+        </div>
       ))}
       {!message.isStreaming && message.suggestions.length > 0 && (
-        <SuggestionChips chips={message.suggestions} onSelect={onSuggestion} />
+        <div className="px-1">
+          <SuggestionChips chips={message.suggestions} onSelect={onSuggestion} />
+        </div>
       )}
     </div>
   )
