@@ -50,7 +50,7 @@ export default function SlidePanel({ open, title, onClose, children }: Props) {
             ref={closeBtnRef}
             onClick={onClose}
             aria-label="닫기"
-            className="w-7 h-7 rounded-[var(--radius-pill)] flex items-center justify-center
+            className="w-10 h-10 rounded-[var(--radius-pill)] flex items-center justify-center
                        text-[var(--ink-medium)] hover:bg-[var(--clay-light)]
                        hover:text-[var(--clay)] transition-colors"
           >

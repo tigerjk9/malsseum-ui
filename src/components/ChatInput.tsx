@@ -55,8 +55,8 @@ export default function ChatInput({ onSend, disabled }: Props) {
         <button
           onClick={handleSend}
           disabled={disabled || !value.trim()}
-          className="w-8 h-8 rounded-[var(--radius-pill)] bg-[var(--ink-dark)] text-[var(--hanji-cream)]
-                     flex items-center justify-center text-sm flex-shrink-0 mb-0.5
+          className="w-10 h-10 rounded-[var(--radius-pill)] bg-[var(--ink-dark)] text-[var(--hanji-cream)]
+                     flex items-center justify-center text-base flex-shrink-0
                      hover:bg-[var(--clay)] transition-colors disabled:opacity-40"
         >
           ↑
