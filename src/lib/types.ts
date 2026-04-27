@@ -32,6 +32,8 @@ export interface ChatMessage {
 
 export type PanelType = 'none' | 'search' | 'browse' | 'themes' | 'compare' | 'original'
 
+export type DialogueMode = 'inductive' | 'free'
+
 export interface AppState {
   messages: ChatMessage[]
   activePanel: PanelType
@@ -39,6 +41,7 @@ export interface AppState {
   translation: TranslationCode
   isLoading: boolean
   error: string | null
+  dialogueMode: DialogueMode | null
 }
 
 export interface VerseApiResponse {

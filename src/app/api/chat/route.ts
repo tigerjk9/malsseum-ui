@@ -32,7 +32,7 @@ function buildRagBlock(hits: Awaited<ReturnType<typeof retrieve>>): string {
 
 export async function POST(req: NextRequest) {
   const userApiKey = req.headers.get('x-gemini-api-key') ?? undefined
-  const body = await req.json() as { messages: ChatMessage[] }
+  const body = await req.json() as { messages: ChatMessage[]; mode?: 'inductive' | 'free' }
 
   if (!body.messages?.length) {
     return new Response(encode({ type: 'error', message: 'messages 필드 필요' }), {
@@ -66,14 +66,17 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        // Build Gemini contents and append RAG block to the latest user turn.
+        // Build Gemini contents and append RAG block + mode override to the latest user turn.
         const contents = buildGeminiContents(body.messages)
-        if (ragBlock && contents.length > 0) {
+        const freeBlock = body.mode === 'free'
+          ? '\n\n---\n[대화 모드: 자유 대화]\n관찰/해석/적용 구조에 구애받지 않고 자연스럽게 대화하세요. 말씀 인용([[VERSE:...]])은 맥락에 맞을 때만 사용하고, 대화하듯 편하게 응답하세요.\n---'
+          : ''
+        if (contents.length > 0) {
           const last = contents[contents.length - 1]
           if (last.role === 'user') {
             const part = last.parts[0]
             if (part && 'text' in part && typeof part.text === 'string') {
-              part.text = part.text + ragBlock
+              part.text = part.text + ragBlock + freeBlock
             }
           }
         }
