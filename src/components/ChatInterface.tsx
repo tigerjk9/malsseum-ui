@@ -1,7 +1,7 @@
 'use client'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { nanoid } from 'nanoid'
-import type { ChatMessage, AppState, PanelType, VerseRef, VerseData } from '@/lib/types'
+import type { ChatMessage, AppState, PanelType, VerseRef, VerseData, SavedConversation, DialogueMode } from '@/lib/types'
 import { DEFAULT_TRANSLATION } from '@/lib/constants'
 import { parseVerseRefString } from '@/lib/verse-parser'
 import MessageBubble from './MessageBubble'
@@ -16,6 +16,26 @@ import SearchPanel from './panels/SearchPanel'
 import BrowsePanel from './panels/BrowsePanel'
 import ThemesPanel from './panels/ThemesPanel'
 import OriginalLanguagePanel from './panels/OriginalLanguagePanel'
+import HistoryPanel from './panels/HistoryPanel'
+
+const HISTORY_KEY = 'malsseum_history'
+const MAX_HISTORY = 10
+
+function loadHistory(): SavedConversation[] {
+  if (typeof window === 'undefined') return []
+  try {
+    return JSON.parse(localStorage.getItem(HISTORY_KEY) ?? '[]')
+  } catch { return [] }
+}
+
+function persistHistory(history: SavedConversation[]) {
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(history))
+}
+
+function makeTitle(messages: ChatMessage[]): string {
+  const first = messages.find(m => m.role === 'user')
+  return first ? first.content.slice(0, 28) + (first.content.length > 28 ? '…' : '') : '대화'
+}
 
 const WELCOME_MESSAGE: ChatMessage = {
   id: 'welcome',
@@ -35,6 +55,7 @@ const PANEL_TITLES: Record<Exclude<PanelType, 'none'>, string> = {
   themes: '묵상',
   compare: '번역 비교',
   original: '원어',
+  history: '대화 기록',
 }
 
 export default function ChatInterface() {
@@ -48,8 +69,13 @@ export default function ChatInterface() {
     dialogueMode: null,
   })
   const [hanjaEnabled, setHanjaEnabled] = useState(false)
+  const [history, setHistory] = useState<SavedConversation[]>([])
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const userScrolledUp = useRef(false)
+
+  useEffect(() => {
+    setHistory(loadHistory())
+  }, [])
 
   useEffect(() => {
     if (!userScrolledUp.current) {
@@ -174,11 +200,24 @@ export default function ChatInterface() {
     setState(s => ({ ...s, activePanel: panel, activePanelVerse: ref }))
   }
 
-  const handleModeSelect = (mode: import('@/lib/types').DialogueMode) => {
+  const handleModeSelect = (mode: DialogueMode) => {
     setState(s => ({ ...s, dialogueMode: mode }))
   }
 
   const handleNewChat = () => {
+    const realMessages = state.messages.filter(m => m.id !== 'welcome')
+    if (realMessages.some(m => m.role === 'user')) {
+      const saved: SavedConversation = {
+        id: nanoid(),
+        title: makeTitle(realMessages),
+        messages: state.messages,
+        savedAt: Date.now(),
+        dialogueMode: state.dialogueMode,
+      }
+      const updated = [saved, ...history].slice(0, MAX_HISTORY)
+      setHistory(updated)
+      persistHistory(updated)
+    }
     setState(s => ({
       ...s,
       messages: [WELCOME_MESSAGE],
@@ -187,6 +226,21 @@ export default function ChatInterface() {
       error: null,
       dialogueMode: null,
     }))
+  }
+
+  const handleRestore = (conv: SavedConversation) => {
+    setState(s => ({
+      ...s,
+      messages: conv.messages,
+      activePanel: 'none',
+      dialogueMode: conv.dialogueMode,
+    }))
+  }
+
+  const handleDeleteHistory = (id: string) => {
+    const updated = history.filter(c => c.id !== id)
+    setHistory(updated)
+    persistHistory(updated)
   }
 
   const handleClosePanel = () => {
@@ -219,6 +273,14 @@ export default function ChatInterface() {
         )
       case 'original':
         return <OriginalLanguagePanel verseRef={state.activePanelVerse} />
+      case 'history':
+        return (
+          <HistoryPanel
+            history={history}
+            onRestore={(conv) => { handleRestore(conv); handleClosePanel() }}
+            onDelete={handleDeleteHistory}
+          />
+        )
       default:
         return null
     }

@@ -1,7 +1,7 @@
 'use client'
 import type { ComponentType, SVGProps } from 'react'
 import type { PanelType } from '@/lib/types'
-import { SearchIcon, BookIcon, LeafIcon, CompareIcon, GlyphIcon } from './icons'
+import { SearchIcon, BookIcon, LeafIcon, CompareIcon, GlyphIcon, HistoryIcon } from './icons'
 
 interface Props {
   activePanel: PanelType
@@ -15,6 +15,7 @@ const ICONS: { panel: PanelType; Icon: IconComponent; label: string }[] = [
   { panel: 'themes',   Icon: LeafIcon,    label: '묵상' },
   { panel: 'compare',  Icon: CompareIcon, label: '비교' },
   { panel: 'original', Icon: GlyphIcon,   label: '원어' },
+  { panel: 'history',  Icon: HistoryIcon, label: '대화 기록' },
 ]
 
 export default function IconSidebar({ activePanel, onToggle }: Props) {

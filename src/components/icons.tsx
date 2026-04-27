@@ -90,3 +90,20 @@ export function MonitorIcon(props: SVGProps<SVGSVGElement>) {
     </svg>
   )
 }
+
+export function HistoryIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...baseProps} {...props}>
+      <circle cx="10" cy="10" r="6.5" />
+      <path d="M10 7v3.5l2.5 2" />
+    </svg>
+  )
+}
+
+export function PlusIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...baseProps} {...props}>
+      <path d="M10 4v12M4 10h12" />
+    </svg>
+  )
+}

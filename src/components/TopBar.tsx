@@ -3,6 +3,7 @@ import { TRANSLATION_LABELS } from '@/lib/constants'
 import type { TranslationCode } from '@/lib/types'
 import ThemeToggle from './ThemeToggle'
 import HanjaToggle from './HanjaToggle'
+import { PlusIcon } from './icons'
 
 interface Props {
   translation: TranslationCode
@@ -36,6 +37,16 @@ export default function TopBar({
       </button>
 
       <div className="flex items-center gap-1.5">
+        <button
+          onClick={onNewChat}
+          aria-label="새 대화"
+          title="새 대화"
+          className="w-8 h-8 flex items-center justify-center rounded-[var(--radius-control)]
+                     text-[var(--ink-medium)]/70 hover:text-[var(--clay)] hover:bg-[var(--clay-light)]
+                     transition-colors"
+        >
+          <PlusIcon width={16} height={16} />
+        </button>
         <HanjaToggle enabled={hanjaEnabled} onChange={onHanjaToggle} />
         <ThemeToggle />
         <select

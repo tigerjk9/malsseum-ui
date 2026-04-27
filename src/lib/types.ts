@@ -30,7 +30,15 @@ export interface ChatMessage {
   isStreaming?: boolean
 }
 
-export type PanelType = 'none' | 'search' | 'browse' | 'themes' | 'compare' | 'original'
+export type PanelType = 'none' | 'search' | 'browse' | 'themes' | 'compare' | 'original' | 'history'
+
+export interface SavedConversation {
+  id: string
+  title: string
+  messages: ChatMessage[]
+  savedAt: number
+  dialogueMode: DialogueMode | null
+}
 
 export type DialogueMode = 'inductive' | 'free'
 
