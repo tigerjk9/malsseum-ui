@@ -4,9 +4,11 @@ import { useState, useRef, type KeyboardEvent } from 'react'
 interface Props {
   onSend: (text: string) => void
   disabled: boolean
+  mode: 'inductive' | 'free'
+  onModeChange: (mode: 'inductive' | 'free') => void
 }
 
-export default function ChatInput({ onSend, disabled }: Props) {
+export default function ChatInput({ onSend, disabled, mode, onModeChange }: Props) {
   const [value, setValue] = useState('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -72,10 +74,28 @@ export default function ChatInput({ onSend, disabled }: Props) {
           </svg>
         </button>
       </div>
-      <p className="text-[0.6rem] text-center text-[var(--ink-medium)]/50 mt-1.5
-                    tracking-wider max-w-2xl mx-auto">
-        Enter 전송 &middot; Shift+Enter 줄바꿈
-      </p>
+      <div className="flex items-center justify-between max-w-2xl mx-auto mt-1.5 px-0.5">
+        <p className="text-[0.6rem] text-[var(--ink-medium)]/50 tracking-wider">
+          Enter 전송 &middot; Shift+Enter 줄바꿈
+        </p>
+        <div className="flex items-center gap-0.5 rounded-[var(--radius-pill)]
+                        border border-[var(--clay-border)] overflow-hidden">
+          {(['inductive', 'free'] as const).map((m) => (
+            <button
+              key={m}
+              onClick={() => onModeChange(m)}
+              disabled={disabled}
+              className={`text-[0.6rem] tracking-wide px-2 py-0.5 transition-colors
+                ${mode === m
+                  ? 'bg-[var(--clay)] text-[var(--hanji-cream)]'
+                  : 'text-[var(--ink-medium)]/60 hover:text-[var(--ink-medium)]'
+                }`}
+            >
+              {m === 'inductive' ? '귀납' : '자유'}
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }

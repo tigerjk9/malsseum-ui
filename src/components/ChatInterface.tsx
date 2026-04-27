@@ -10,7 +10,6 @@ import TopBar from './TopBar'
 import IconSidebar from './IconSidebar'
 import BottomNav from './BottomNav'
 import SlidePanel from './SlidePanel'
-import DialogueModeSelector from './DialogueModeSelector'
 import TranslationComparePanel from './panels/TranslationComparePanel'
 import SearchPanel from './panels/SearchPanel'
 import BrowsePanel from './panels/BrowsePanel'
@@ -40,7 +39,7 @@ function makeTitle(messages: ChatMessage[]): string {
 const WELCOME_MESSAGE: ChatMessage = {
   id: 'welcome',
   role: 'assistant',
-  content: '안녕하세요. 저는 말씀 길잡이입니다.\n\n처음 질문에는 말씀을 관찰하고 해석하여 오늘에 적용하는 방식으로 답해드립니다. 그 뒤에는 같은 방식으로 계속 깊이 파고들지, 아니면 형식 없이 편하게 대화할지 함께 선택할 수 있어요.\n\n어떤 말씀이나 주제에 대해 함께 나눠보고 싶으신가요?',
+  content: '안녕하세요. 저는 말씀 길잡이입니다.\n\n말씀을 함께 탐구하고 싶은 주제나 질문이 있으신가요?\n아래 입력창에서 대화 방식(귀납 / 자유)을 언제든 바꿀 수 있어요.',
   verses: [],
   suggestions: [
     { label: '용서에 대해', prompt: '용서에 대해 알고 싶어요' },
@@ -66,7 +65,7 @@ export default function ChatInterface() {
     translation: DEFAULT_TRANSLATION,
     isLoading: false,
     error: null,
-    dialogueMode: null,
+    dialogueMode: 'inductive',
   })
   const [hanjaEnabled, setHanjaEnabled] = useState(false)
   const [history, setHistory] = useState<SavedConversation[]>([])
@@ -104,11 +103,13 @@ export default function ChatInterface() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: [...state.messages, userMsg].map(m => ({
-            id: m.id, role: m.role, content: m.rawContent ?? m.content,
-            verses: [], suggestions: [],
-          })),
-          mode: state.dialogueMode ?? 'inductive',
+          messages: [...state.messages, userMsg]
+            .filter(m => m.id !== 'welcome')
+            .map(m => ({
+              id: m.id, role: m.role, content: m.rawContent ?? m.content,
+              verses: [], suggestions: [],
+            })),
+          mode: state.dialogueMode,
         }),
       })
 
@@ -200,10 +201,6 @@ export default function ChatInterface() {
     setState(s => ({ ...s, activePanel: panel, activePanelVerse: ref }))
   }
 
-  const handleModeSelect = (mode: DialogueMode) => {
-    setState(s => ({ ...s, dialogueMode: mode }))
-  }
-
   const handleNewChat = () => {
     const realMessages = state.messages.filter(m => m.id !== 'welcome')
     if (realMessages.some(m => m.role === 'user')) {
@@ -224,7 +221,7 @@ export default function ChatInterface() {
       activePanel: 'none',
       activePanelVerse: null,
       error: null,
-      dialogueMode: null,
+      dialogueMode: 'inductive',
     }))
   }
 
@@ -233,7 +230,7 @@ export default function ChatInterface() {
       ...s,
       messages: conv.messages,
       activePanel: 'none',
-      dialogueMode: conv.dialogueMode,
+      dialogueMode: conv.dialogueMode ?? 'inductive',
     }))
   }
 
@@ -290,9 +287,6 @@ export default function ChatInterface() {
   const panelTitle =
     state.activePanel !== 'none' ? PANEL_TITLES[state.activePanel] : ''
 
-  const firstRealAiId = state.messages.find(
-    m => m.role === 'assistant' && m.id !== 'welcome' && !m.isStreaming && m.content
-  )?.id
 
   return (
     <div className="flex flex-col h-screen bg-[var(--hanji-warm)]">
@@ -318,26 +312,22 @@ export default function ChatInterface() {
             }}
           >
             {state.messages.map((msg) => (
-              <div key={msg.id}>
-                <MessageBubble
-                  message={msg}
-                  onAction={handleAction}
-                  onSuggestion={handleSend}
-                  hanjaEnabled={hanjaEnabled}
-                />
-                {msg.id === firstRealAiId && state.dialogueMode === null && (
-                  <DialogueModeSelector onSelect={handleModeSelect} />
-                )}
-                {msg.id === firstRealAiId && state.dialogueMode !== null && (
-                  <p className="text-[0.65rem] text-[var(--clay)]/70 px-1 mt-1.5 tracking-wide animate-fade-in">
-                    {state.dialogueMode === 'inductive' ? '귀납 구조로 이어가는 중' : '자유 대화 모드'}
-                  </p>
-                )}
-              </div>
+              <MessageBubble
+                key={msg.id}
+                message={msg}
+                onAction={handleAction}
+                onSuggestion={handleSend}
+                hanjaEnabled={hanjaEnabled}
+              />
             ))}
             <div ref={messagesEndRef} />
           </div>
-          <ChatInput onSend={handleSend} disabled={state.isLoading} />
+          <ChatInput
+            onSend={handleSend}
+            disabled={state.isLoading}
+            mode={state.dialogueMode}
+            onModeChange={(m) => setState(s => ({ ...s, dialogueMode: m }))}
+          />
         </main>
       </div>
       <BottomNav

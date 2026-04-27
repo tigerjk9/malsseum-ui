@@ -49,7 +49,7 @@ export interface AppState {
   translation: TranslationCode
   isLoading: boolean
   error: string | null
-  dialogueMode: DialogueMode | null
+  dialogueMode: DialogueMode
 }
 
 export interface VerseApiResponse {
