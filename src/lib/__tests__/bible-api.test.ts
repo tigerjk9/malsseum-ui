@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { fetchVerse, buildBollsUrl } from '../bible-api'
+import { fetchVerse, buildBollsUrl, fetchChapter } from '../bible-api'
 import type { VerseRef } from '../types'
 
 global.fetch = vi.fn()
@@ -35,5 +35,41 @@ describe('fetchVerse', () => {
     } as Response)
 
     await expect(fetchVerse(ref)).rejects.toThrow('Bible API 404')
+  })
+})
+
+describe('fetchChapter', () => {
+  it('Bolls.life 챕터 API 호출 → 절 배열 반환', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce({
+      ok: true,
+      json: async () => [
+        { pk: 1, verse: 1, text: '만물이 그로 말미암아 지은 바 되었으니' },
+        { pk: 2, verse: 2, text: '그 안에 생명이 있었으니' },
+      ],
+    } as Response)
+
+    const result = await fetchChapter({
+      book: 'John',
+      chapter: 1,
+      translation: 'KRV',
+    })
+    expect(result.bookNameKo).toBe('요한복음')
+    expect(result.book).toBe('John')
+    expect(result.chapter).toBe(1)
+    expect(result.verses).toHaveLength(2)
+    expect(result.verses[0]).toEqual({ verse: 1, text: '만물이 그로 말미암아 지은 바 되었으니' })
+  })
+
+  it('API 실패 시 에러', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce({ ok: false, status: 502 } as Response)
+    await expect(
+      fetchChapter({ book: 'John', chapter: 1, translation: 'KRV' })
+    ).rejects.toThrow('Bible API 502')
+  })
+
+  it('알 수 없는 책명은 에러', async () => {
+    await expect(
+      fetchChapter({ book: 'BadBook', chapter: 1, translation: 'KRV' })
+    ).rejects.toThrow(/Unknown book/)
   })
 })
