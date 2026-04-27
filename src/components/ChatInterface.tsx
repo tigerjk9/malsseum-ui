@@ -190,7 +190,7 @@ export default function ChatInterface() {
         error: message,
       }))
     }
-  }, [state.messages])
+  }, [state.messages, state.dialogueMode])
 
   const handlePanelToggle = (panel: PanelType) => {
     setState(s => ({ ...s, activePanel: s.activePanel === panel ? 'none' : panel }))
