@@ -26,7 +26,7 @@ export default function TopBar({
         <div className="text-[0.75rem] tracking-[0.25em] text-[var(--ink-medium)]">
           말씀의 길
         </div>
-        <div className="text-[0.5rem] tracking-[0.4em] text-[var(--clay)] uppercase">
+        <div className="text-[0.625rem] tracking-[0.3em] text-[var(--clay)] uppercase">
           VERBUM
         </div>
       </button>

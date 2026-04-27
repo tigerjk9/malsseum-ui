@@ -34,7 +34,10 @@ export default function MessageBubble({ message, onAction, onSuggestion, hanjaEn
         {message.isStreaming ? (
           <span>
             <HanjaText text={message.content} enabled={hanjaEnabled} />
-            <span className="animate-pulse">▌</span>
+            <span
+              aria-hidden="true"
+              className="inline-block w-[2px] h-[1em] mx-0.5 -mb-[0.15em] bg-current align-middle animate-pulse"
+            />
           </span>
         ) : (
           <HanjaText text={message.content} enabled={hanjaEnabled} />

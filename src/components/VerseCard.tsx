@@ -33,7 +33,7 @@ function ActionTag({ label, onClick }: { label: string; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="text-[0.65rem] bg-[var(--clay-light)] text-[var(--clay)] px-3 py-1 rounded-[var(--radius-pill)]
+      className="text-[0.75rem] bg-[var(--clay-light)] text-[var(--clay)] px-3 py-1 rounded-[var(--radius-pill)]
                  hover:bg-[rgba(139,99,67,0.2)] transition-colors"
     >
       {label}
