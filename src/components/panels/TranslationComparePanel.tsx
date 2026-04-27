@@ -19,6 +19,7 @@ export default function TranslationComparePanel({ verseRef }: Props) {
 
   useEffect(() => {
     if (!verseRef) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setRows([])
       return
     }

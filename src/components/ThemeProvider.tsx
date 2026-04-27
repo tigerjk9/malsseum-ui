@@ -24,12 +24,8 @@ export default function ThemeProvider({ children }: { children: React.ReactNode 
   const [resolved, setResolved] = useState<ResolvedTheme>(() => resolveTheme(getStoredTheme()))
 
   useEffect(() => {
-    const initial = getStoredTheme()
-    const r = resolveTheme(initial)
-    setThemeState(initial)
-    setResolved(r)
-    applyTheme(r)
-  }, [])
+    applyTheme(resolved)
+  }, [resolved])
 
   useEffect(() => {
     if (theme !== 'system') return

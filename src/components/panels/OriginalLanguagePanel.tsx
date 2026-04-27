@@ -32,6 +32,7 @@ export default function OriginalLanguagePanel({ verseRef }: Props) {
 
   useEffect(() => {
     if (!verseRef) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setStatus('idle')
       setData(null)
       return
