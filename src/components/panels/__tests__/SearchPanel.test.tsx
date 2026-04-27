@@ -83,4 +83,46 @@ describe('SearchPanel', () => {
       expect(screen.getByText(/검색 실패/)).toBeInTheDocument()
     })
   })
+
+  it('"주제로 검색" 토글 → THEMES 매칭, fetch 호출 없음', async () => {
+    render(<SearchPanel onPickVerse={vi.fn()} />)
+    fireEvent.click(screen.getByRole('tab', { name: /주제로 검색/ }))
+    await userEvent.type(screen.getByPlaceholderText(/주제 키워드/), '용서')
+    fireEvent.click(screen.getByRole('button', { name: /검색/ }))
+    expect(await screen.findByText(/마태복음 6:14/)).toBeInTheDocument()
+    expect(fetch).not.toHaveBeenCalled()
+  })
+
+  it('주제 모드 결과 클릭 → /api/verse 호출 후 onPickVerse', async () => {
+    const onPickVerse = vi.fn()
+    const verse = {
+      ref: { book: '1John', chapter: 4, verse: 8, translation: 'KRV' as const },
+      text: '사랑하지 아니하는 자는 하나님을 알지 못하나니',
+      bookNameKo: '요한일서',
+    }
+    vi.mocked(fetch).mockResolvedValueOnce({
+      ok: true,
+      json: async () => verse,
+    } as Response)
+
+    render(<SearchPanel onPickVerse={onPickVerse} />)
+    fireEvent.click(screen.getByRole('tab', { name: /주제로 검색/ }))
+    await userEvent.type(screen.getByPlaceholderText(/주제 키워드/), '사랑')
+    fireEvent.click(screen.getByRole('button', { name: /검색/ }))
+    fireEvent.click(await screen.findByRole('button', { name: '요한일서 4:8' }))
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/api/verse?ref=1John:4:8&translation=KRV')
+      )
+      expect(onPickVerse).toHaveBeenCalledWith(verse)
+    })
+  })
+
+  it('주제 모드 매칭 없음 → 안내 문구', async () => {
+    render(<SearchPanel onPickVerse={vi.fn()} />)
+    fireEvent.click(screen.getByRole('tab', { name: /주제로 검색/ }))
+    await userEvent.type(screen.getByPlaceholderText(/주제 키워드/), 'zzznotfound')
+    fireEvent.click(screen.getByRole('button', { name: /검색/ }))
+    expect(await screen.findByText(/일치하는 주제가 없습니다/)).toBeInTheDocument()
+  })
 })
