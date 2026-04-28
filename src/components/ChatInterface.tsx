@@ -21,7 +21,9 @@ import AccessGate from './AccessGate'
 
 const HISTORY_KEY = 'malsseum_history'
 const CURRENT_KEY = 'malsseum_current'
+const PANEL_WIDTH_KEY = 'malsseum_panel_width'
 const MAX_HISTORY = 10
+const DEFAULT_PANEL_WIDTH = 280
 
 function isTokenExpired(token: string): boolean {
   try {
@@ -103,6 +105,7 @@ export default function ChatInterface() {
     dialogueMode: 'inductive',
   })
   const [isCheckingAccess, setIsCheckingAccess] = useState(true)
+  const [panelWidth, setPanelWidth] = useState(DEFAULT_PANEL_WIDTH)
   const [hanjaEnabled, setHanjaEnabled] = useState(false)
   const [geminiKey, setGeminiKey] = useState('')
   const [adminToken, setAdminToken] = useState('')
@@ -122,6 +125,9 @@ export default function ChatInterface() {
         dialogueMode: session.dialogueMode ?? 'inductive',
       }))
     }
+    const savedPanelWidth = parseInt(localStorage.getItem(PANEL_WIDTH_KEY) ?? '', 10)
+    if (savedPanelWidth >= 240 && savedPanelWidth <= 600) setPanelWidth(savedPanelWidth)
+
     const savedToken = localStorage.getItem(ADMIN_TOKEN_KEY) ?? ''
     const savedKey = localStorage.getItem(GEMINI_KEY_STORAGE_KEY) ?? ''
     const savedMode = localStorage.getItem(ACCESS_MODE_KEY) as 'admin' | 'user' | null
@@ -155,6 +161,10 @@ export default function ChatInterface() {
       setGeminiKey(apiKey)
     }
   }
+
+  useEffect(() => {
+    localStorage.setItem(PANEL_WIDTH_KEY, String(panelWidth))
+  }, [panelWidth])
 
   useEffect(() => {
     if (state.isLoading) return
@@ -414,9 +424,8 @@ export default function ChatInterface() {
       <div className="flex flex-1 overflow-hidden">
         <IconSidebar activePanel={state.activePanel} onToggle={handlePanelToggle} />
         <main
-          className={`flex flex-col flex-1 overflow-hidden ${
-            panelOpen ? 'md:mr-[280px]' : ''
-          } pb-14 md:pb-0`}
+          className={`flex flex-col flex-1 overflow-hidden pb-14 md:pb-0 ${panelOpen ? 'md-panel-shift' : ''}`}
+          style={{ '--panel-width': `${panelWidth}px` } as React.CSSProperties}
         >
           <div
             className="flex-1 overflow-y-auto px-4 py-4 pb-20 md:pb-4 space-y-4"
@@ -449,7 +458,13 @@ export default function ChatInterface() {
         onToggle={handlePanelToggle}
         onHome={handleClosePanel}
       />
-      <SlidePanel open={panelOpen} title={panelTitle} onClose={handleClosePanel}>
+      <SlidePanel
+        open={panelOpen}
+        title={panelTitle}
+        onClose={handleClosePanel}
+        width={panelWidth}
+        onWidthChange={setPanelWidth}
+      >
         {renderPanelBody()}
       </SlidePanel>
 

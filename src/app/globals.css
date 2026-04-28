@@ -128,16 +128,39 @@ body > * {
   from { transform: translateX(100%); }
   to   { transform: translateX(0); }
 }
+@keyframes panel-slide-in-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
 @keyframes panel-fade-in {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
+/* 기본: 데스크톱 오른쪽 슬라이드 */
 .panel-enter {
   animation: panel-slide-in-right 220ms cubic-bezier(0.22, 1, 0.36, 1);
   will-change: transform;
 }
+/* 모바일: 바텀 시트 위로 슬라이드 */
+@media (max-width: 767px) {
+  .panel-enter {
+    animation: panel-slide-in-up 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
 .panel-backdrop-enter {
   animation: panel-fade-in 220ms ease-out;
+}
+/* 데스크톱 패널 너비(동적)에 맞춰 메인 콘텐츠 오른쪽 여백 */
+@media (min-width: 768px) {
+  .md-panel-shift {
+    margin-right: var(--panel-width, 280px);
+  }
+}
+/* 데스크톱 전용 패널 너비 — 모바일에선 inset-x-0이 우선 */
+@media (min-width: 768px) {
+  .panel-desktop-w {
+    width: var(--panel-w, 280px);
+  }
 }
 
 /* ── 메시지 페이드인 ── */
