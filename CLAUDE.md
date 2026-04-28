@@ -30,7 +30,7 @@ Korean Bible study webapp on Next.js 16 (App Router) + React 19 + Tailwind 4, de
 - **Components** in `src/components/`, panel components in `src/components/panels/`.
 - **Icons** are inline monoline SVGs in `src/components/icons.tsx` — no emoji as chrome (data-level emoji in `themes.ts` is OK).
 - **No DB.** All retrieval is `public/rag/` static assets fetched at runtime (cached in module scope per Function instance).
-- **BYO API key** pattern: every Gemini-using API route reads `x-gemini-api-key` header first, falls back to `process.env.GEMINI_API_KEY`. UI: TopBar의 KeyIcon 버튼 → 팝오버에서 입력 → `localStorage('malsseum_gemini_key')` 저장 → `ChatInterface`가 모든 Gemini fetch에 헤더 주입.
+- **BYO API key** pattern: every Gemini-using API route reads `x-gemini-api-key` header first, falls back to `process.env.GEMINI_API_KEY`. UI: 최초방문 → `AccessGate` 오버레이 → 관리자(서버 키 내장)/일반(개인 Gemini API 키 입력) 선택 → `localStorage('malsseum_access_mode')` + `localStorage('malsseum_gemini_key')` 저장 → `ChatInterface`가 모든 Gemini fetch에 헤더 주입. TopBar LockIcon 버튼으로 재진입 가능.
 
 ## Design tokens
 
@@ -55,10 +55,12 @@ Defined in `src/app/globals.css`. Light mode in `:root`, dark mode in `.dark`.
 | `src/lib/data/themes.ts` | 12 curated themes (search `mode=theme`). |
 | `src/lib/data/hanja-glossary.ts` | 30 theological terms with hanja. |
 | `src/app/globals.css` | Design tokens (light + dark), hanji noise overlay, motion guards. Single source of truth for color/radius/animation tokens. |
-| `src/components/icons.tsx` | 12 inline monoline SVG icons (KeyIcon, QuestionIcon 추가). Add new icons here, not as emoji. |
+| `src/components/icons.tsx` | 12 inline monoline SVG icons (LockIcon, UserIcon 포함). Add new icons here, not as emoji. |
+| `src/components/AccessGate.tsx` | 최초방문 접근 게이트 — 관리자/일반 접속자 선택, Gemini API 키 입력, hero 이미지 포함. |
 | `src/components/panels/HelpPanel.tsx` | 8개 섹션 기능 안내 패널. 정적 컨텐츠, props 없음. |
 | `scripts/build-rag-index.mjs` | One-time RAG index builder (`npm run build:rag`). |
 | `scripts/smoke-rag.mjs` | Local RAG quality smoke test. |
+| `public/og-image.png` | OG/SNS 공유 이미지 (2848×1504, 세피아 성경/앱 마케팅). AccessGate hero + layout.tsx openGraph 사용. |
 | `public/rag/verses-embed.bin` | int8 embedding index (22.78 MB, committed to git). |
 | `public/rag/verses-meta.json.gz` | gzipped verse metadata (1.42 MB). |
 

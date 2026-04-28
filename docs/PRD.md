@@ -4,7 +4,7 @@
 
 **Live**: https://malsseum-ui.vercel.app
 **Repo**: https://github.com/tigerjk9/malsseum-ui (default branch: `main`)
-**Status**: Phase 4 (RAG) + Phase 4.5 (design polish) shipped (2026-04-27); Phase 5 (UX polish) + Phase 6 (search quality + BYO key UI + hanji texture) + Phase 7 (RAG quality hardening + HelpPanel + mobile + philosophy) shipped (2026-04-28)
+**Status**: Phase 4 (RAG) + Phase 4.5 (design polish) shipped (2026-04-27); Phase 5 (UX polish) + Phase 6 (search quality + BYO key UI + hanji texture) + Phase 7 (RAG quality hardening + HelpPanel + mobile + philosophy) + Phase 8 (AccessGate 최초방문 게이트 + 후속 제안 UX + OG 이미지) shipped (2026-04-28)
 
 ---
 
