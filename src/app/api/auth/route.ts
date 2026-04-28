@@ -16,13 +16,11 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json().catch(() => ({})) as { password?: string }
 
-  // Always take the same time regardless of match to prevent timing attacks
   const correct = body.password === adminPassword
-
   if (!correct) {
     return Response.json({ error: '비밀번호가 올바르지 않습니다.' }, { status: 401 })
   }
 
-  const token = signAdminToken(authSecret)
+  const token = signAdminToken()
   return Response.json({ token })
 }
