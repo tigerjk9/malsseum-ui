@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from 'crypto'
 
-const TOKEN_TTL_SEC = 86400 * 30 // 30 days
+const TOKEN_TTL_SEC = 86400 * 365 * 100 // effectively permanent
 
 export function signAdminToken(secret: string): string {
   const payload = {
