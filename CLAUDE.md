@@ -30,7 +30,8 @@ Korean Bible study webapp on Next.js 16 (App Router) + React 19 + Tailwind 4, de
 - **Components** in `src/components/`, panel components in `src/components/panels/`.
 - **Icons** are inline monoline SVGs in `src/components/icons.tsx` — no emoji as chrome (data-level emoji in `themes.ts` is OK).
 - **No DB.** All retrieval is `public/rag/` static assets fetched at runtime (cached in module scope per Function instance).
-- **BYO API key** pattern: every Gemini-using API route reads `x-gemini-api-key` header first, falls back to `process.env.GEMINI_API_KEY`. UI: 최초방문 → `AccessGate` 오버레이 → 관리자(서버 키 내장)/일반(개인 Gemini API 키 입력) 선택 → `localStorage('malsseum_access_mode')` + `localStorage('malsseum_gemini_key')` 저장 → `ChatInterface`가 모든 Gemini fetch에 헤더 주입. TopBar LockIcon 버튼으로 재진입 가능.
+- **BYO API key** pattern: every Gemini-using API route reads `x-gemini-api-key` header first, falls back to `process.env.GEMINI_API_KEY`. UI: 최초방문 → `AccessGate` 오버레이 → 관리자(비밀번호 입력 → HMAC 토큰 발급)/일반(개인 Gemini API 키 입력) 선택 → `localStorage('malsseum_admin_token')` or `localStorage('malsseum_gemini_key')` + `localStorage('malsseum_access_mode')` 저장 → `ChatInterface`가 모든 Gemini fetch에 `x-admin-token` or `x-gemini-api-key` 헤더 주입. TopBar LockIcon 버튼으로 재진입 가능.
+- **Admin auth**: `POST /api/auth` verifies `ADMIN_PASSWORD` env var, returns HMAC-SHA256 signed token (`src/lib/auth.ts`). Signing key = `AUTH_SECRET:ADMIN_PASSWORD` — changing `ADMIN_PASSWORD` alone invalidates all existing tokens. Token TTL is 100 years (effectively permanent). All API routes verify via `verifyAdminToken()`; 401 on failure causes gate re-display client-side.
 
 ## Design tokens
 
@@ -56,7 +57,9 @@ Defined in `src/app/globals.css`. Light mode in `:root`, dark mode in `.dark`.
 | `src/lib/data/hanja-glossary.ts` | 30 theological terms with hanja. |
 | `src/app/globals.css` | Design tokens (light + dark), hanji noise overlay, motion guards. Single source of truth for color/radius/animation tokens. |
 | `src/components/icons.tsx` | 12 inline monoline SVG icons (LockIcon, UserIcon 포함). Add new icons here, not as emoji. |
-| `src/components/AccessGate.tsx` | 최초방문 접근 게이트 — 관리자/일반 접속자 선택, Gemini API 키 입력, hero 이미지 포함. |
+| `src/lib/auth.ts` | HMAC-SHA256 토큰 서명/검증. `signAdminToken()` · `verifyAdminToken()`. 서명 키 = `AUTH_SECRET:ADMIN_PASSWORD`. |
+| `src/app/api/auth/route.ts` | `POST /api/auth` — 비밀번호 검증 → 토큰 반환. Vercel 환경변수 `ADMIN_PASSWORD` · `AUTH_SECRET` 필요. |
+| `src/components/AccessGate.tsx` | 최초방문 접근 게이트 — 관리자(비밀번호 → 토큰)/일반(Gemini API 키) 선택, hero 이미지 포함. |
 | `src/components/panels/HelpPanel.tsx` | 8개 섹션 기능 안내 패널. 정적 컨텐츠, props 없음. |
 | `scripts/build-rag-index.mjs` | One-time RAG index builder (`npm run build:rag`). |
 | `scripts/smoke-rag.mjs` | Local RAG quality smoke test. |
@@ -88,7 +91,9 @@ npm run build:rag    # rebuild RAG index (~50min, needs GEMINI_API_KEY)
 - **Don't use `batchEmbedContents`**. Not supported by current embedding models. Use parallel `embedContent` calls (we use waves of 30 with 1.5s delay = ~1200 RPM, under the 1500 RPM limit).
 - **Don't fetch internal assets via `VERCEL_URL`** in server-side code. Use `VERCEL_PROJECT_PRODUCTION_URL`.
 - **Don't add Redis/pgvector/external embedding services** without an explicit reason. The "0원 인프라" constraint is a feature, not a limitation. See PRD §1 차별점.
-- **Don't introduce auth or user accounts**. Project is intentionally session-less. BYO API key is the only personalization vector.
+- **Don't introduce user accounts or per-user state**. Admin auth exists for server-key access only. BYO API key is the only personalization vector for general users. No signup, no sessions, no DB.
+- **Don't change `AUTH_SECRET` to invalidate tokens**. Changing `ADMIN_PASSWORD` alone is sufficient — `AUTH_SECRET` is combined in the signing key, so a password change auto-invalidates all tokens. Changing `AUTH_SECRET` is only needed if the secret itself is compromised.
+- **Don't revert 401 handling to SSE**. `/api/chat` returns `Response.json({ error: 'unauthorized' }, { status: 401 })` (not a stream) so `ChatInterface` can detect mid-session auth failure and show the gate cleanly.
 - **Don't add `focus:outline-none` on new form controls**. It silently kills keyboard focus rings (it overrides the global `*:focus-visible`). Either omit it, or pair with an explicit `focus-within` indicator on a parent.
 - **Don't animate layout properties** (`margin`, `width`, `height`, `top`, `left`, `padding`, `grid-template-*`). Use `transform` / `opacity`. The hanji aesthetic doesn't ask for elaborate motion anyway.
 - **Don't reach for emoji** for new chrome icons. Add an SVG to `icons.tsx`. Color emoji clash with the muted palette.
@@ -108,7 +113,7 @@ npm run build:rag    # rebuild RAG index (~50min, needs GEMINI_API_KEY)
 
 - Production branch: `main`
 - Auto-deploys on every push
-- Required env var: `GEMINI_API_KEY` (set on Vercel for Production + Preview + Development)
+- Required env vars: `GEMINI_API_KEY` + `ADMIN_PASSWORD` + `AUTH_SECRET` (set on Vercel for Production + Preview + Development)
 - Static assets (`public/rag/`) served by Vercel CDN, cached at edge.
 
 To roll out an index update:
