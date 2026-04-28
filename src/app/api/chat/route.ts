@@ -37,10 +37,7 @@ export async function POST(req: NextRequest) {
   const isAdmin = verifyAdminToken(adminToken)
 
   if (!isAdmin && !userApiKey) {
-    return new Response(
-      encode({ type: 'error', message: 'API 키 또는 관리자 인증이 필요합니다.' }),
-      { status: 401, headers: { 'Content-Type': 'text/event-stream' } }
-    )
+    return Response.json({ error: 'unauthorized' }, { status: 401 })
   }
 
   const body = await req.json() as { messages: ChatMessage[]; mode?: 'inductive' | 'free' }

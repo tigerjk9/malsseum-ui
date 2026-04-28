@@ -23,6 +23,14 @@ const HISTORY_KEY = 'malsseum_history'
 const CURRENT_KEY = 'malsseum_current'
 const MAX_HISTORY = 10
 
+function isTokenExpired(token: string): boolean {
+  try {
+    const data = token.split('.')[0]
+    const payload = JSON.parse(atob(data.replace(/-/g, '+').replace(/_/g, '/')))
+    return !payload.exp || payload.exp < Math.floor(Date.now() / 1000)
+  } catch { return true }
+}
+
 function loadHistory(): SavedConversation[] {
   if (typeof window === 'undefined') return []
   try {
@@ -117,14 +125,21 @@ export default function ChatInterface() {
     const savedKey = localStorage.getItem(GEMINI_KEY_STORAGE_KEY) ?? ''
     const savedMode = localStorage.getItem(ACCESS_MODE_KEY) as 'admin' | 'user' | null
 
-    if (savedToken) {
+    if (savedToken && !isTokenExpired(savedToken)) {
       setAdminToken(savedToken)
       setAccessMode('admin')
-    } else if (savedMode === 'user' && savedKey) {
-      setGeminiKey(savedKey)
-      setAccessMode('user')
     } else {
-      setGateOpen(true)
+      if (savedToken) {
+        // 만료된 토큰 정리
+        localStorage.removeItem(ADMIN_TOKEN_KEY)
+        localStorage.removeItem(ACCESS_MODE_KEY)
+      }
+      if (savedMode === 'user' && savedKey) {
+        setGeminiKey(savedKey)
+        setAccessMode('user')
+      } else {
+        setGateOpen(true) // 첫 방문 또는 토큰 만료 → 게이트 표시
+      }
     }
   }, [])
 
@@ -185,6 +200,22 @@ export default function ChatInterface() {
           mode: state.dialogueMode,
         }),
       })
+
+      // 토큰 만료 또는 미인증 → 오류 메시지 대신 게이트 재표시
+      if (res.status === 401) {
+        if (adminToken) {
+          localStorage.removeItem(ADMIN_TOKEN_KEY)
+          localStorage.removeItem(ACCESS_MODE_KEY)
+          setAdminToken('')
+        }
+        setState(s => ({
+          ...s,
+          messages: s.messages.filter(m => m.id !== assistantId),
+          isLoading: false,
+        }))
+        setGateOpen(true)
+        return
+      }
 
       if (!res.body) throw new Error('스트림 없음')
       const reader = res.body.getReader()
@@ -423,7 +454,7 @@ export default function ChatInterface() {
       {gateOpen && (
         <AccessGate
           onComplete={handleAccessComplete}
-          onClose={accessMode ? () => setGateOpen(false) : undefined}
+          onClose={!!(adminToken || geminiKey) ? () => setGateOpen(false) : undefined}
         />
       )}
     </div>
