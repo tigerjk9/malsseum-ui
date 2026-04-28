@@ -83,14 +83,19 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        // Build Gemini contents and append RAG block to the latest user turn.
+        // Build Gemini contents and append RAG block + mode reinforcement to the latest user turn.
+        // Mode hint overrides in-context style drift when user switches modes mid-conversation.
         const contents = buildGeminiContents(body.messages)
-        if (ragBlock && contents.length > 0) {
+        const modeHint = mode === 'inductive'
+          ? '\n\n[응답 형식 지침: 반드시 귀납적 구조([[VERSE]] → 관찰 → 해석 → 적용)로만 응답하세요. 대화체 금지.]'
+          : '\n\n[응답 형식 지침: 자유 대화체로 응답하세요. 관찰/해석/적용 귀납 구조 절대 금지.]'
+        if (contents.length > 0) {
           const last = contents[contents.length - 1]
           if (last.role === 'user') {
             const part = last.parts[0]
             if (part && 'text' in part && typeof part.text === 'string') {
-              part.text = part.text + ragBlock
+              if (ragBlock) part.text = part.text + ragBlock
+              part.text = part.text + modeHint
             }
           }
         }
