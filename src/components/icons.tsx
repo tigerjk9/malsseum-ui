@@ -116,3 +116,13 @@ export function KeyIcon(props: SVGProps<SVGSVGElement>) {
     </svg>
   )
 }
+
+export function QuestionIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...baseProps} {...props}>
+      <circle cx="10" cy="10" r="7" />
+      <path d="M8.2 8a2 2 0 1 1 2.5 1.9c-.4.2-.7.6-.7 1.1v.5" />
+      <circle cx="10" cy="14.5" r="0.7" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}

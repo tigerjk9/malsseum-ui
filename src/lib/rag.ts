@@ -187,7 +187,7 @@ export function topKVectors(query: Float32Array, k: number, idx: RagIndex): Scor
 // Falls back to the original query on error or timeout.
 export async function expandQuery(query: string, apiKey: string): Promise<string> {
   const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 3000)
+  const timeout = setTimeout(() => controller.abort(), 1500)
   try {
     const url =
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent` +

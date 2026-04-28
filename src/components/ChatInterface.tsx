@@ -16,6 +16,7 @@ import BrowsePanel from './panels/BrowsePanel'
 import ThemesPanel from './panels/ThemesPanel'
 import OriginalLanguagePanel from './panels/OriginalLanguagePanel'
 import HistoryPanel from './panels/HistoryPanel'
+import HelpPanel from './panels/HelpPanel'
 
 const HISTORY_KEY = 'malsseum_history'
 const CURRENT_KEY = 'malsseum_current'
@@ -54,12 +55,12 @@ function makeTitle(messages: ChatMessage[]): string {
 const WELCOME_MESSAGE: ChatMessage = {
   id: 'welcome',
   role: 'assistant',
-  content: '안녕하세요. 저는 말씀 길잡이입니다.\n\n말씀을 함께 탐구하고 싶은 주제나 질문이 있으신가요?\n아래 입력창에서 대화 방식(귀납 / 자유)을 언제든 바꿀 수 있어요.',
+  content: '안녕하세요. 저는 말씀 길잡이입니다.\n\n이 앱은 하나님께 더 가까이 나아가도록 돕는 작은 도구입니다. 한글 성경 31,103구절 전체를 의미 검색하여 질문과 가장 가까운 말씀을 찾고, 소크라테스식으로 함께 묵상합니다.\n\n✦ 귀납 모드 — 질문으로 이끄는 깊은 묵상\n✦ 자유 모드 — 편하게 나누는 대화\n✦ 검색 · 탐독 · 묵상 테마 · 원어 분석 · 번역 비교\n   (좌측 아이콘 또는 하단 메뉴로 열기)\n✦ ? 도움말에서 기능별 상세 안내를 확인하세요.',
   verses: [],
   suggestions: [
     { label: '용서에 대해', prompt: '용서에 대해 알고 싶어요' },
-    { label: '소망의 말씀', prompt: '소망에 대한 말씀을 찾고 싶어요' },
     { label: '오늘의 위로', prompt: '오늘 마음이 힘드네요. 위로의 말씀이 필요해요' },
+    { label: '믿음이란 무엇인가요', prompt: '믿음이 무엇인지 성경을 통해 알고 싶어요' },
   ],
 }
 
@@ -70,6 +71,7 @@ const PANEL_TITLES: Record<Exclude<PanelType, 'none'>, string> = {
   compare: '번역 비교',
   original: '원어',
   history: '대화 기록',
+  help: '도움말',
 }
 
 export default function ChatInterface() {
@@ -306,6 +308,7 @@ export default function ChatInterface() {
       case 'themes':
         return (
           <ThemesPanel
+            geminiKey={geminiKey}
             onPickTheme={(prompt) => {
               setState(s => ({ ...s, activePanel: 'none' }))
               handleSend(prompt)
@@ -322,6 +325,8 @@ export default function ChatInterface() {
             onDelete={handleDeleteHistory}
           />
         )
+      case 'help':
+        return <HelpPanel />
       default:
         return null
     }
@@ -333,7 +338,7 @@ export default function ChatInterface() {
 
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-dvh">
       <TopBar
         translation={state.translation}
         onTranslationChange={(t) => setState(s => ({ ...s, translation: t }))}

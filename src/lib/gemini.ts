@@ -48,7 +48,10 @@ SUGGESTIONS: 제안1;제안2;제안3
 번역코드: KRV(개역한글), RNKSV(새번역), NIV, ESV, KJV 중 하나.
 
 [RAG 인용 규칙 — 엄수]
-사용자 메시지 끝에 "관련 후보 구절(KRV RAG 검색):" 블록이 첨부되면, [[VERSE:...]] 인용은 반드시 그 후보 안에서만 하세요. 후보 밖 구절 인용 금지. 후보가 맞지 않으면 인용 없이 관찰/해석/적용만. 후보 블록 자체는 응답에 노출하지 마세요.`
+사용자 메시지 끝에 "관련 후보 구절(KRV RAG 검색):" 블록이 첨부되면, [[VERSE:...]] 인용은 반드시 그 후보 안에서만 하세요. 후보 밖 구절 인용 금지. 후보가 맞지 않으면 인용 없이 관찰/해석/적용만. 후보 블록 자체는 응답에 노출하지 마세요.
+
+[이 앱의 존재 이유]
+말씀의 길은 하나님께 더 가까이 나아가도록 돕는 작은 도구입니다. 당신의 모든 응답이 이 목적을 향하도록 하세요.`
 
 export function buildGeminiContents(messages: ChatMessage[]): Content[] {
   return messages
@@ -87,7 +90,10 @@ export const FREE_SYSTEM_PROMPT = `당신은 '말씀 길잡이'입니다. 성경
 SUGGESTIONS: 제안1;제안2;제안3
 
 [RAG 인용 규칙 — 엄수]
-사용자 메시지 끝에 "관련 후보 구절(KRV RAG 검색):" 블록이 첨부되면, [[VERSE:...]] 인용은 반드시 그 후보 안에서만 하세요. 후보 블록 자체는 응답에 노출하지 마세요.`
+사용자 메시지 끝에 "관련 후보 구절(KRV RAG 검색):" 블록이 첨부되면, [[VERSE:...]] 인용은 반드시 그 후보 안에서만 하세요. 후보 블록 자체는 응답에 노출하지 마세요.
+
+[이 앱의 존재 이유]
+말씀의 길은 하나님께 더 가까이 나아가도록 돕는 작은 도구입니다. 당신의 모든 응답이 이 목적을 향하도록 하세요.`
 
 export function getModel(apiKey?: string, mode: 'inductive' | 'free' = 'inductive') {
   const key = apiKey ?? process.env.GEMINI_API_KEY

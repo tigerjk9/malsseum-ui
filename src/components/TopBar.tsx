@@ -142,7 +142,9 @@ export default function TopBar({
           )}
         </div>
 
-        <HanjaToggle enabled={hanjaEnabled} onChange={onHanjaToggle} />
+        <span className="hidden md:inline-flex">
+          <HanjaToggle enabled={hanjaEnabled} onChange={onHanjaToggle} />
+        </span>
         <ThemeToggle />
         <select
           value={translation}

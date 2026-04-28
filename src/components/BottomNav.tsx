@@ -1,7 +1,7 @@
 'use client'
 import type { ComponentType, SVGProps } from 'react'
 import type { PanelType } from '@/lib/types'
-import { ChatIcon, SearchIcon, BookIcon, LeafIcon } from './icons'
+import { ChatIcon, SearchIcon, BookIcon, LeafIcon, QuestionIcon } from './icons'
 
 interface Props {
   activePanel: PanelType
@@ -12,13 +12,14 @@ interface Props {
 type IconComponent = ComponentType<SVGProps<SVGSVGElement>>
 type NavTab =
   | { id: 'home'; label: string; Icon: IconComponent }
-  | { id: Exclude<PanelType, 'none' | 'compare' | 'original'>; label: string; Icon: IconComponent }
+  | { id: Exclude<PanelType, 'none' | 'compare' | 'original' | 'history'>; label: string; Icon: IconComponent }
 
 const TABS: NavTab[] = [
-  { id: 'home', label: '채팅', Icon: ChatIcon },
+  { id: 'home',   label: '채팅', Icon: ChatIcon },
   { id: 'search', label: '검색', Icon: SearchIcon },
   { id: 'browse', label: '탐독', Icon: BookIcon },
   { id: 'themes', label: '묵상', Icon: LeafIcon },
+  { id: 'help',   label: '도움말', Icon: QuestionIcon },
 ]
 
 export default function BottomNav({ activePanel, onToggle, onHome }: Props) {

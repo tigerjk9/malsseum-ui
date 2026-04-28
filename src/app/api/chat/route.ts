@@ -8,7 +8,7 @@ export const runtime = 'nodejs'
 export const maxDuration = 60
 
 const RAG_TOP_K = 10
-const RAG_SCORE_THRESHOLD = 0.35
+const RAG_SCORE_THRESHOLD = 0.55
 
 function encode(chunk: StreamChunk): string {
   return `data: ${JSON.stringify(chunk)}\n\n`
@@ -50,16 +50,25 @@ export async function POST(req: NextRequest) {
         // Find the latest user message to drive retrieval and expansion.
         const lastUser = [...body.messages].reverse().find((m) => m.role === 'user')
         const lastUserText = lastUser?.rawContent ?? lastUser?.content ?? ''
+        const mode = body.mode ?? 'inductive'
 
-        // Run RAG retrieval. Failures here should not kill the chat — fall back to bare LLM.
+        // Run RAG retrieval only in inductive mode — free mode is LLM-first conversation.
         let ragBlock = ''
+        let ragCandidateKeys = new Set<string>()
         const apiKey = userApiKey ?? process.env.GEMINI_API_KEY ?? ''
-        if (lastUserText.trim() && apiKey) {
+        if (mode !== 'free' && lastUserText.trim() && apiKey) {
           try {
-            const expanded = await expandQuery(lastUserText, apiKey)
+            // For short follow-up messages, include recent context to improve retrieval quality.
+            const userMessages = body.messages.filter(m => m.role === 'user')
+            const ragQuery = lastUserText.length < 30 && userMessages.length > 1
+              ? userMessages.slice(-3).map(m => m.rawContent ?? m.content).join(' ')
+              : lastUserText
+
+            const expanded = await expandQuery(ragQuery, apiKey)
             const allHits = await retrieve(expanded, RAG_TOP_K, apiKey)
             const hits = allHits.filter((h) => h.score >= RAG_SCORE_THRESHOLD)
             console.log(`[chat] RAG: expanded="${expanded.slice(0, 80)}" hits=${allHits.length} above_threshold=${hits.length}`)
+            ragCandidateKeys = new Set(hits.map(h => `${h.ref.book}:${h.ref.chapter}:${h.ref.verse}`))
             ragBlock = buildRagBlock(hits)
           } catch (err) {
             console.error('[chat] RAG retrieval failed, continuing without:', err)
@@ -78,7 +87,7 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        const model = getModel(userApiKey, body.mode === 'free' ? 'free' : 'inductive')
+        const model = getModel(userApiKey, mode)
         const result = await model.generateContentStream({ contents })
 
         let fullText = ''
@@ -91,6 +100,14 @@ export async function POST(req: NextRequest) {
 
         const verseRefs = extractVerseRefs(fullText)
         for (const ref of verseRefs) {
+          // Guard against hallucinated refs not present in the RAG candidate set.
+          if (ragCandidateKeys.size > 0) {
+            const parts = ref.split(':')
+            if (!ragCandidateKeys.has(`${parts[0]}:${parts[1]}:${parts[2]}`)) {
+              console.log(`[chat] Dropping out-of-candidate ref: ${ref}`)
+              continue
+            }
+          }
           send({ type: 'verse_ref', ref })
         }
 
