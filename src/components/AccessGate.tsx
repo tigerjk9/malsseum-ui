@@ -1,5 +1,6 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
+import Image from 'next/image'
 import { GEMINI_KEY_STORAGE_KEY, ACCESS_MODE_KEY } from '@/lib/constants'
 import { UserIcon } from './icons'
 
@@ -44,170 +45,185 @@ export default function AccessGate({ onComplete, onClose }: Props) {
   const goBack = () => { setStep('select'); setError(''); setApiKey('') }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center
-                    bg-[var(--hanji-warm)] px-5 py-8">
-      <div className="w-full max-w-[340px]">
+    <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center
+                    bg-[var(--hanji-warm)]/95 px-4 py-8">
+      <div className="w-full max-w-[380px] rounded-[var(--radius-paper)]
+                      border border-[var(--clay-border)] overflow-hidden
+                      bg-[var(--hanji-cream)] shadow-[0_8px_40px_rgba(0,0,0,0.12)]">
 
-        {/* Close button — only when mode already set (mode change, not first visit) */}
-        {onClose && (
-          <div className="flex justify-end mb-4">
-            <button
-              onClick={onClose}
-              aria-label="닫기"
-              className="text-[var(--ink-medium)]/50 hover:text-[var(--ink-medium)]
-                         transition-colors text-lg leading-none w-8 h-8
-                         flex items-center justify-center">
-              ✕
-            </button>
-          </div>
-        )}
-
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex w-11 h-11 rounded-[var(--radius-pill)]
-                          bg-[var(--ink-dark)] items-center justify-center
-                          text-[var(--hanji-cream)] text-base mb-3.5">
-            ✦
-          </div>
-          <p className="text-[0.6rem] tracking-[0.45em] text-[var(--clay)]/70 uppercase mb-1.5">
-            VERBUM
-          </p>
-          <h1 className="text-[1.1rem] font-[family-name:var(--font-serif)]
-                         text-[var(--ink-dark)] tracking-wide mb-2">
-            말씀의 길
-          </h1>
-          <p className="text-[0.76rem] text-[var(--ink-medium)] leading-relaxed">
-            하나님께 더 가까이 나아가도록 돕는 작은 도구입니다
-          </p>
+        {/* Hero image */}
+        <div className="relative w-full" style={{ aspectRatio: '2848 / 1504' }}>
+          <Image
+            src="/og-image.png"
+            alt="말씀의 길 — 하나님께 더 가까이"
+            fill
+            className="object-cover"
+            priority
+          />
+          {/* Gradient overlay for text legibility below */}
+          <div className="absolute inset-x-0 bottom-0 h-12
+                          bg-gradient-to-t from-[var(--hanji-cream)] to-transparent" />
         </div>
 
-        {step === 'select' ? (
-          <div>
-            <p className="text-[0.74rem] text-center text-[var(--ink-medium)]/70 mb-4">
-              접속 방식을 선택해주세요
+        {/* Content */}
+        <div className="px-5 pb-7 pt-4">
+
+          {/* Close button */}
+          {onClose && (
+            <div className="flex justify-end mb-2 -mt-1">
+              <button
+                onClick={onClose}
+                aria-label="닫기"
+                className="text-[var(--ink-medium)]/50 hover:text-[var(--ink-medium)]
+                           transition-colors text-lg leading-none w-8 h-8
+                           flex items-center justify-center">
+                ✕
+              </button>
+            </div>
+          )}
+
+          {/* Title block */}
+          <div className="text-center mb-6">
+            <p className="text-[0.58rem] tracking-[0.45em] text-[var(--clay)]/70 uppercase mb-1">
+              VERBUM
             </p>
-            <div className="grid grid-cols-2 gap-3">
-
-              {/* Admin */}
-              <button
-                onClick={handleAdmin}
-                className="group flex flex-col gap-3 p-4 text-left
-                           rounded-[var(--radius-paper)] border border-[var(--clay-border)]
-                           bg-[var(--hanji-cream)] hover:bg-[var(--clay-light)]
-                           hover:border-[var(--clay)] transition-all">
-                <div className="w-9 h-9 rounded-[var(--radius-pill)] bg-[var(--ink-dark)]
-                                flex items-center justify-center
-                                text-[var(--hanji-cream)] text-xs
-                                group-hover:bg-[var(--clay)] transition-colors">
-                  ✦
-                </div>
-                <div>
-                  <div className="text-[0.84rem] font-medium text-[var(--ink-dark)]">
-                    관리자
-                  </div>
-                  <div className="text-[0.7rem] text-[var(--ink-medium)] leading-snug mt-0.5
-                                  whitespace-pre-line">
-                    {'API 키 내장\n바로 시작'}
-                  </div>
-                </div>
-              </button>
-
-              {/* General user */}
-              <button
-                onClick={() => setStep('key-input')}
-                className="group flex flex-col gap-3 p-4 text-left
-                           rounded-[var(--radius-paper)] border border-[var(--clay-border)]
-                           bg-[var(--hanji-cream)] hover:bg-[var(--clay-light)]
-                           hover:border-[var(--clay)] transition-all">
-                <div className="w-9 h-9 rounded-[var(--radius-pill)]
-                                border border-[var(--clay-border)] flex items-center justify-center
-                                text-[var(--ink-medium)] group-hover:border-[var(--clay)]
-                                group-hover:text-[var(--clay)] transition-colors">
-                  <UserIcon width={18} height={18} />
-                </div>
-                <div>
-                  <div className="text-[0.84rem] font-medium text-[var(--ink-dark)]">
-                    일반 접속자
-                  </div>
-                  <div className="text-[0.7rem] text-[var(--ink-medium)] leading-snug mt-0.5
-                                  whitespace-pre-line">
-                    {'Gemini API 키\n직접 입력'}
-                  </div>
-                </div>
-              </button>
-            </div>
+            <h1 className="text-[1.05rem] font-[family-name:var(--font-serif)]
+                           text-[var(--ink-dark)] tracking-wide mb-1.5">
+              말씀의 길
+            </h1>
+            <p className="text-[0.73rem] text-[var(--ink-medium)] leading-relaxed">
+              하나님께 더 가까이 나아가도록 돕는 작은 도구입니다
+            </p>
           </div>
-        ) : (
-          <div className="space-y-4">
+
+          {step === 'select' ? (
             <div>
-              <p className="text-[0.78rem] font-medium text-[var(--ink-dark)] mb-1">
-                Gemini API 키 입력
+              <p className="text-[0.72rem] text-center text-[var(--ink-medium)]/70 mb-4">
+                접속 방식을 선택해주세요
               </p>
-              <p className="text-[0.72rem] text-[var(--ink-medium)] mb-3 leading-relaxed">
-                키는 브라우저에만 저장되며 서버로 전송되지 않습니다.
-                본인의 Gemini 무료 한도 안에서 사용됩니다.
-              </p>
-              <input
-                ref={inputRef}
-                type="password"
-                value={apiKey}
-                onChange={(e) => { setApiKey(e.target.value); setError('') }}
-                onKeyDown={(e) => { if (e.key === 'Enter') handleUserContinue() }}
-                placeholder="AIzaSy..."
-                className="w-full text-[0.85rem] bg-[var(--paper-white)]
-                           border border-[var(--clay-border)] rounded-[var(--radius-control)]
-                           px-3.5 py-2.5 text-[var(--ink-dark)]
-                           placeholder:text-[var(--ink-medium)] placeholder:opacity-40
-                           focus-visible:outline-none focus-visible:border-[var(--clay)]"
-              />
-              {error && (
-                <p className="text-[0.71rem] text-red-500/80 mt-1.5">{error}</p>
-              )}
+              <div className="grid grid-cols-2 gap-3">
+
+                {/* Admin */}
+                <button
+                  onClick={handleAdmin}
+                  className="group flex flex-col gap-3 p-4 text-left
+                             rounded-[var(--radius-paper)] border border-[var(--clay-border)]
+                             bg-[var(--hanji-cream)] hover:bg-[var(--clay-light)]
+                             hover:border-[var(--clay)] transition-all">
+                  <div className="w-9 h-9 rounded-[var(--radius-pill)] bg-[var(--ink-dark)]
+                                  flex items-center justify-center
+                                  text-[var(--hanji-cream)] text-xs
+                                  group-hover:bg-[var(--clay)] transition-colors">
+                    ✦
+                  </div>
+                  <div>
+                    <div className="text-[0.84rem] font-medium text-[var(--ink-dark)]">
+                      관리자
+                    </div>
+                    <div className="text-[0.7rem] text-[var(--ink-medium)] leading-snug mt-0.5
+                                    whitespace-pre-line">
+                      {'API 키 내장\n바로 시작'}
+                    </div>
+                  </div>
+                </button>
+
+                {/* General user */}
+                <button
+                  onClick={() => setStep('key-input')}
+                  className="group flex flex-col gap-3 p-4 text-left
+                             rounded-[var(--radius-paper)] border border-[var(--clay-border)]
+                             bg-[var(--hanji-cream)] hover:bg-[var(--clay-light)]
+                             hover:border-[var(--clay)] transition-all">
+                  <div className="w-9 h-9 rounded-[var(--radius-pill)]
+                                  border border-[var(--clay-border)] flex items-center justify-center
+                                  text-[var(--ink-medium)] group-hover:border-[var(--clay)]
+                                  group-hover:text-[var(--clay)] transition-colors">
+                    <UserIcon width={18} height={18} />
+                  </div>
+                  <div>
+                    <div className="text-[0.84rem] font-medium text-[var(--ink-dark)]">
+                      일반 접속자
+                    </div>
+                    <div className="text-[0.7rem] text-[var(--ink-medium)] leading-snug mt-0.5
+                                    whitespace-pre-line">
+                      {'Gemini API 키\n직접 입력'}
+                    </div>
+                  </div>
+                </button>
+              </div>
             </div>
+          ) : (
+            <div className="space-y-4">
+              <div>
+                <p className="text-[0.78rem] font-medium text-[var(--ink-dark)] mb-1">
+                  Gemini API 키 입력
+                </p>
+                <p className="text-[0.72rem] text-[var(--ink-medium)] mb-3 leading-relaxed">
+                  키는 브라우저에만 저장되며 서버로 전송되지 않습니다.
+                  본인의 Gemini 무료 한도 안에서 사용됩니다.
+                </p>
+                <input
+                  ref={inputRef}
+                  type="password"
+                  value={apiKey}
+                  onChange={(e) => { setApiKey(e.target.value); setError('') }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleUserContinue() }}
+                  placeholder="AIzaSy..."
+                  className="w-full text-[0.85rem] bg-[var(--paper-white)]
+                             border border-[var(--clay-border)] rounded-[var(--radius-control)]
+                             px-3.5 py-2.5 text-[var(--ink-dark)]
+                             placeholder:text-[var(--ink-medium)] placeholder:opacity-40
+                             focus-visible:outline-none focus-visible:border-[var(--clay)]"
+                />
+                {error && (
+                  <p className="text-[0.71rem] text-red-500/80 mt-1.5">{error}</p>
+                )}
+              </div>
 
-            {/* AI Studio info */}
-            <div className="rounded-[var(--radius-paper)] border border-[var(--clay-border)]/60
-                            bg-[var(--clay-light)]/40 px-3.5 py-3 space-y-1.5">
-              <p className="text-[0.73rem] font-medium text-[var(--ink-dark)]">
-                키가 없으신가요?
-              </p>
-              <p className="text-[0.7rem] text-[var(--ink-medium)] leading-relaxed">
-                Google AI Studio에서 무료로 발급받으실 수 있습니다.
-                가입 후 1분 이내 발급됩니다. Gemini 무료 한도로 충분합니다.
-              </p>
-              <a
-                href="https://aistudio.google.com/apikey"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-[0.73rem]
-                           text-[var(--clay)] hover:opacity-70 transition-opacity">
-                Google AI Studio 바로가기
-                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.5}
-                     strokeLinecap="round" strokeLinejoin="round" width={12} height={12}
-                     aria-hidden="true">
-                  <path d="M3 8h10M9 4l4 4-4 4" />
-                </svg>
-              </a>
+              {/* AI Studio info */}
+              <div className="rounded-[var(--radius-paper)] border border-[var(--clay-border)]/60
+                              bg-[var(--clay-light)]/40 px-3.5 py-3 space-y-1.5">
+                <p className="text-[0.73rem] font-medium text-[var(--ink-dark)]">
+                  키가 없으신가요?
+                </p>
+                <p className="text-[0.7rem] text-[var(--ink-medium)] leading-relaxed">
+                  Google AI Studio에서 무료로 발급받으실 수 있습니다.
+                  가입 후 1분 이내 발급됩니다. Gemini 무료 한도로 충분합니다.
+                </p>
+                <a
+                  href="https://aistudio.google.com/apikey"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-[0.73rem]
+                             text-[var(--clay)] hover:opacity-70 transition-opacity">
+                  Google AI Studio 바로가기
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.5}
+                       strokeLinecap="round" strokeLinejoin="round" width={12} height={12}
+                       aria-hidden="true">
+                    <path d="M3 8h10M9 4l4 4-4 4" />
+                  </svg>
+                </a>
+              </div>
+
+              <button
+                onClick={handleUserContinue}
+                disabled={!apiKey.trim()}
+                className="w-full py-2.5 rounded-[var(--radius-control)]
+                           bg-[var(--ink-dark)] text-[var(--hanji-cream)]
+                           text-[0.85rem] hover:bg-[var(--clay)] transition-colors
+                           disabled:opacity-40 disabled:cursor-not-allowed">
+                시작하기
+              </button>
+
+              <button
+                onClick={goBack}
+                className="w-full text-[0.74rem] text-[var(--ink-medium)]/60
+                           hover:text-[var(--ink-medium)] transition-colors">
+                ← 돌아가기
+              </button>
             </div>
-
-            <button
-              onClick={handleUserContinue}
-              disabled={!apiKey.trim()}
-              className="w-full py-2.5 rounded-[var(--radius-control)]
-                         bg-[var(--ink-dark)] text-[var(--hanji-cream)]
-                         text-[0.85rem] hover:bg-[var(--clay)] transition-colors
-                         disabled:opacity-40 disabled:cursor-not-allowed">
-              시작하기
-            </button>
-
-            <button
-              onClick={goBack}
-              className="w-full text-[0.74rem] text-[var(--ink-medium)]/60
-                         hover:text-[var(--ink-medium)] transition-colors">
-              ← 돌아가기
-            </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   )
