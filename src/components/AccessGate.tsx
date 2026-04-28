@@ -1,54 +1,57 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
-import { GEMINI_KEY_STORAGE_KEY, ACCESS_MODE_KEY, ADMIN_PW_KEY, DEFAULT_ADMIN_PW } from '@/lib/constants'
+import { GEMINI_KEY_STORAGE_KEY, ACCESS_MODE_KEY, ADMIN_TOKEN_KEY } from '@/lib/constants'
 import { UserIcon } from './icons'
 
-type Step = 'select' | 'admin-pw' | 'key-input' | 'change-pw'
+type Step = 'select' | 'admin-pw' | 'key-input'
 
 interface Props {
-  onComplete: (mode: 'admin' | 'user', apiKey?: string) => void
+  onComplete: (mode: 'admin' | 'user', apiKey?: string, adminToken?: string) => void
   onClose?: () => void
-}
-
-function getAdminPw(): string {
-  if (typeof window === 'undefined') return DEFAULT_ADMIN_PW
-  return localStorage.getItem(ADMIN_PW_KEY) ?? DEFAULT_ADMIN_PW
 }
 
 export default function AccessGate({ onComplete, onClose }: Props) {
   const [step, setStep] = useState<Step>('select')
   const [apiKey, setApiKey] = useState('')
   const [pw, setPw] = useState('')
-  const [newPw, setNewPw] = useState('')
-  const [confirmPw, setConfirmPw] = useState('')
   const [error, setError] = useState('')
-  const [pwChanged, setPwChanged] = useState(false)
+  const [loading, setLoading] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
-
-  const isAlreadyAdmin =
-    typeof window !== 'undefined' &&
-    localStorage.getItem(ACCESS_MODE_KEY) === 'admin'
 
   useEffect(() => {
     const t = setTimeout(() => inputRef.current?.focus(), 80)
     return () => clearTimeout(t)
   }, [step])
 
-  const resetError = () => { setError(''); setPwChanged(false) }
+  const resetError = () => setError('')
 
-  const goBack = () => {
-    setStep('select')
-    setPw(''); setApiKey(''); setNewPw(''); setConfirmPw('')
-    resetError()
-  }
+  const goBack = () => { setStep('select'); setPw(''); setApiKey(''); resetError() }
 
-  const handleAdminPwSubmit = () => {
+  const handleAdminPwSubmit = async () => {
     if (!pw) { setError('비밀번호를 입력해주세요.'); return }
-    if (pw !== getAdminPw()) { setError('비밀번호가 올바르지 않습니다.'); return }
-    localStorage.setItem(ACCESS_MODE_KEY, 'admin')
-    localStorage.removeItem(GEMINI_KEY_STORAGE_KEY)
-    onComplete('admin')
+    setLoading(true)
+    setError('')
+    try {
+      const res = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: pw }),
+      })
+      const data = await res.json() as { token?: string; error?: string }
+      if (!res.ok || !data.token) {
+        setError(data.error ?? '인증 실패')
+        return
+      }
+      localStorage.setItem(ADMIN_TOKEN_KEY, data.token)
+      localStorage.setItem(ACCESS_MODE_KEY, 'admin')
+      localStorage.removeItem(GEMINI_KEY_STORAGE_KEY)
+      onComplete('admin', undefined, data.token)
+    } catch {
+      setError('서버와 연결할 수 없습니다.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleUserContinue = () => {
@@ -60,18 +63,8 @@ export default function AccessGate({ onComplete, onClose }: Props) {
     }
     localStorage.setItem(ACCESS_MODE_KEY, 'user')
     localStorage.setItem(GEMINI_KEY_STORAGE_KEY, trimmed)
+    localStorage.removeItem(ADMIN_TOKEN_KEY)
     onComplete('user', trimmed)
-  }
-
-  const handleChangePw = () => {
-    if (!pw) { setError('현재 비밀번호를 입력해주세요.'); return }
-    if (pw !== getAdminPw()) { setError('현재 비밀번호가 올바르지 않습니다.'); return }
-    if (!newPw) { setError('새 비밀번호를 입력해주세요.'); return }
-    if (newPw.length < 4) { setError('새 비밀번호는 4자 이상이어야 합니다.'); return }
-    if (newPw !== confirmPw) { setError('새 비밀번호가 일치하지 않습니다.'); return }
-    localStorage.setItem(ADMIN_PW_KEY, newPw)
-    setPw(''); setNewPw(''); setConfirmPw(''); setError('')
-    setPwChanged(true)
   }
 
   const inputClass = `w-full text-[0.85rem] bg-[var(--paper-white)]
@@ -80,10 +73,11 @@ export default function AccessGate({ onComplete, onClose }: Props) {
     placeholder:text-[var(--ink-medium)] placeholder:opacity-40
     focus-visible:outline-none focus-visible:border-[var(--clay)]`
 
-  const btnPrimary = `w-full py-2.5 rounded-[var(--radius-control)]
+  const btnPrimary = (disabled: boolean) =>
+    `w-full py-2.5 rounded-[var(--radius-control)]
     bg-[var(--ink-dark)] text-[var(--hanji-cream)]
-    text-[0.85rem] hover:bg-[var(--clay)] transition-colors
-    disabled:opacity-40 disabled:cursor-not-allowed`
+    text-[0.85rem] transition-colors
+    ${disabled ? 'opacity-40 cursor-not-allowed' : 'hover:bg-[var(--clay)]'}`
 
   const btnBack = `w-full text-[0.74rem] text-[var(--ink-medium)]/60
     hover:text-[var(--ink-medium)] transition-colors`
@@ -175,16 +169,6 @@ export default function AccessGate({ onComplete, onClose }: Props) {
                   </div>
                 </button>
               </div>
-
-              {/* 비밀번호 변경 — 이미 관리자 접속 중일 때만 표시 */}
-              {isAlreadyAdmin && (
-                <button
-                  onClick={() => { resetError(); setStep('change-pw') }}
-                  className="mt-4 w-full text-[0.71rem] text-[var(--ink-medium)]/50
-                             hover:text-[var(--clay)] transition-colors text-center">
-                  관리자 비밀번호 변경
-                </button>
-              )}
             </div>
           )}
 
@@ -200,14 +184,18 @@ export default function AccessGate({ onComplete, onClose }: Props) {
                   type="password"
                   value={pw}
                   onChange={(e) => { setPw(e.target.value); resetError() }}
-                  onKeyDown={(e) => { if (e.key === 'Enter') handleAdminPwSubmit() }}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && !loading) handleAdminPwSubmit() }}
                   placeholder="비밀번호 입력"
+                  disabled={loading}
                   className={inputClass}
                 />
                 {error && <p className="text-[0.71rem] text-red-500/80 mt-1.5">{error}</p>}
               </div>
-              <button onClick={handleAdminPwSubmit} disabled={!pw} className={btnPrimary}>
-                접속
+              <button
+                onClick={handleAdminPwSubmit}
+                disabled={!pw || loading}
+                className={btnPrimary(!pw || loading)}>
+                {loading ? '인증 중...' : '접속'}
               </button>
               <button onClick={goBack} className={btnBack}>← 돌아가기</button>
             </div>
@@ -254,65 +242,10 @@ export default function AccessGate({ onComplete, onClose }: Props) {
                 </a>
               </div>
 
-              <button onClick={handleUserContinue} disabled={!apiKey.trim()} className={btnPrimary}>
+              <button onClick={handleUserContinue} disabled={!apiKey.trim()}
+                className={btnPrimary(!apiKey.trim())}>
                 시작하기
               </button>
-              <button onClick={goBack} className={btnBack}>← 돌아가기</button>
-            </div>
-          )}
-
-          {/* ── change-pw ── */}
-          {step === 'change-pw' && (
-            <div className="space-y-3">
-              <p className="text-[0.78rem] font-medium text-[var(--ink-dark)]">
-                관리자 비밀번호 변경
-              </p>
-
-              {pwChanged ? (
-                <div className="rounded-[var(--radius-paper)] border border-[var(--clay-border)]/60
-                                bg-[var(--clay-light)]/40 px-3.5 py-4 text-center space-y-1">
-                  <p className="text-[0.78rem] text-[var(--clay)] font-medium">
-                    비밀번호가 변경되었습니다.
-                  </p>
-                  <p className="text-[0.7rem] text-[var(--ink-medium)]">
-                    다음 접속부터 새 비밀번호가 적용됩니다.
-                  </p>
-                </div>
-              ) : (
-                <>
-                  <input
-                    ref={inputRef}
-                    type="password"
-                    value={pw}
-                    onChange={(e) => { setPw(e.target.value); resetError() }}
-                    placeholder="현재 비밀번호"
-                    className={inputClass}
-                  />
-                  <input
-                    type="password"
-                    value={newPw}
-                    onChange={(e) => { setNewPw(e.target.value); resetError() }}
-                    placeholder="새 비밀번호"
-                    className={inputClass}
-                  />
-                  <input
-                    type="password"
-                    value={confirmPw}
-                    onChange={(e) => { setConfirmPw(e.target.value); resetError() }}
-                    onKeyDown={(e) => { if (e.key === 'Enter') handleChangePw() }}
-                    placeholder="새 비밀번호 확인"
-                    className={inputClass}
-                  />
-                  {error && <p className="text-[0.71rem] text-red-500/80">{error}</p>}
-                  <button
-                    onClick={handleChangePw}
-                    disabled={!pw || !newPw || !confirmPw}
-                    className={btnPrimary}>
-                    변경하기
-                  </button>
-                </>
-              )}
-
               <button onClick={goBack} className={btnBack}>← 돌아가기</button>
             </div>
           )}

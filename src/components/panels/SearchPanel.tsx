@@ -5,6 +5,7 @@ import type { VerseData, VerseRef, TranslationCode } from '@/lib/types'
 
 interface Props {
   onPickVerse: (verse: VerseData) => void
+  adminToken?: string
   geminiKey?: string
 }
 
@@ -21,7 +22,7 @@ function parseThemeRef(ref: string): VerseRef | null {
   return { book, chapter, verse, translation: 'KRV' as TranslationCode }
 }
 
-export default function SearchPanel({ onPickVerse, geminiKey }: Props) {
+export default function SearchPanel({ onPickVerse, adminToken, geminiKey }: Props) {
   const [mode, setMode] = useState<Mode>('verse')
   const [query, setQuery] = useState('')
   const [status, setStatus] = useState<Status>('idle')
@@ -48,7 +49,8 @@ export default function SearchPanel({ onPickVerse, geminiKey }: Props) {
     setResults([])
     try {
       const searchHeaders: HeadersInit = {}
-      if (geminiKey) searchHeaders['x-gemini-api-key'] = geminiKey
+      if (adminToken) searchHeaders['x-admin-token'] = adminToken
+      else if (geminiKey) searchHeaders['x-gemini-api-key'] = geminiKey
       const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`, { headers: searchHeaders })
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))

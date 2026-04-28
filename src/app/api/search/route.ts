@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { retrieve, expandQuery } from '@/lib/rag'
+import { verifyAdminToken } from '@/lib/auth'
 import type { TranslationCode, VerseRef } from '@/lib/types'
 
 export const runtime = 'nodejs'
@@ -24,14 +25,15 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: '검색어는 200자 이내' }, { status: 400 })
   }
 
+  const adminToken = req.headers.get('x-admin-token') ?? ''
   const userApiKey = req.headers.get('x-gemini-api-key') ?? undefined
-  const apiKey = userApiKey ?? process.env.GEMINI_API_KEY ?? ''
-  if (!apiKey) {
-    return NextResponse.json(
-      { error: 'GEMINI_API_KEY 환경 변수가 설정되지 않았습니다.' },
-      { status: 500 }
-    )
+  const isAdmin = verifyAdminToken(adminToken)
+
+  if (!isAdmin && !userApiKey) {
+    return NextResponse.json({ error: 'API 키 또는 관리자 인증이 필요합니다.' }, { status: 401 })
   }
+
+  const apiKey = isAdmin ? (process.env.GEMINI_API_KEY ?? '') : (userApiKey ?? '')
 
   try {
     const expanded = await expandQuery(q, apiKey)

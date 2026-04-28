@@ -5,12 +5,13 @@ import type { VerseData } from '@/lib/types'
 
 interface Props {
   onPickTheme: (prompt: string) => void
+  adminToken?: string
   geminiKey?: string
 }
 
 type Status = 'idle' | 'loading' | 'ok' | 'error'
 
-export default function ThemesPanel({ onPickTheme, geminiKey }: Props) {
+export default function ThemesPanel({ onPickTheme, adminToken, geminiKey }: Props) {
   const [selected, setSelected] = useState<Theme | null>(null)
   const [dynamicVerses, setDynamicVerses] = useState<VerseData[]>([])
   const [status, setStatus] = useState<Status>('idle')
@@ -22,7 +23,8 @@ export default function ThemesPanel({ onPickTheme, geminiKey }: Props) {
 
     try {
       const headers: HeadersInit = {}
-      if (geminiKey) headers['x-gemini-api-key'] = geminiKey
+      if (adminToken) headers['x-admin-token'] = adminToken
+      else if (geminiKey) headers['x-gemini-api-key'] = geminiKey
       const q = encodeURIComponent(`${theme.title} ${theme.description}`)
       const res = await fetch(`/api/search?q=${q}`, { headers })
       if (!res.ok) throw new Error('검색 실패')

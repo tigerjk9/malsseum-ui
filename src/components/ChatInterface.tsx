@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { nanoid } from 'nanoid'
 import type { ChatMessage, AppState, PanelType, VerseRef, VerseData, SavedConversation, DialogueMode } from '@/lib/types'
-import { DEFAULT_TRANSLATION, GEMINI_KEY_STORAGE_KEY, ACCESS_MODE_KEY } from '@/lib/constants'
+import { DEFAULT_TRANSLATION, GEMINI_KEY_STORAGE_KEY, ACCESS_MODE_KEY, ADMIN_TOKEN_KEY } from '@/lib/constants'
 import { parseVerseRefString } from '@/lib/verse-parser'
 import MessageBubble from './MessageBubble'
 import ChatInput from './ChatInput'
@@ -96,7 +96,8 @@ export default function ChatInterface() {
   })
   const [hanjaEnabled, setHanjaEnabled] = useState(false)
   const [geminiKey, setGeminiKey] = useState('')
-  const [accessMode, setAccessMode] = useState<'admin' | 'user'>('admin')
+  const [adminToken, setAdminToken] = useState('')
+  const [accessMode, setAccessMode] = useState<'admin' | 'user'>('user')
   const [gateOpen, setGateOpen] = useState(false)
   const [history, setHistory] = useState<SavedConversation[]>([])
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -112,32 +113,29 @@ export default function ChatInterface() {
         dialogueMode: session.dialogueMode ?? 'inductive',
       }))
     }
+    const savedToken = localStorage.getItem(ADMIN_TOKEN_KEY) ?? ''
     const savedKey = localStorage.getItem(GEMINI_KEY_STORAGE_KEY) ?? ''
-    setGeminiKey(savedKey)
-
     const savedMode = localStorage.getItem(ACCESS_MODE_KEY) as 'admin' | 'user' | null
-    if (savedMode) {
-      setAccessMode(savedMode)
+
+    if (savedToken) {
+      setAdminToken(savedToken)
+      setAccessMode('admin')
+    } else if (savedMode === 'user' && savedKey) {
+      setGeminiKey(savedKey)
+      setAccessMode('user')
     } else {
-      setGateOpen(true) // first visit → show access gate
+      setGateOpen(true)
     }
   }, [])
 
-  const handleGeminiKeyChange = (key: string) => {
-    setGeminiKey(key)
-    if (key) {
-      localStorage.setItem(GEMINI_KEY_STORAGE_KEY, key)
-    } else {
-      localStorage.removeItem(GEMINI_KEY_STORAGE_KEY)
-    }
-  }
-
-  const handleAccessComplete = (mode: 'admin' | 'user', apiKey?: string) => {
+  const handleAccessComplete = (mode: 'admin' | 'user', apiKey?: string, token?: string) => {
     setAccessMode(mode)
     setGateOpen(false)
-    if (mode === 'admin') {
+    if (mode === 'admin' && token) {
+      setAdminToken(token)
       setGeminiKey('')
-    } else if (apiKey) {
+    } else if (mode === 'user' && apiKey) {
+      setAdminToken('')
       setGeminiKey(apiKey)
     }
   }
@@ -171,7 +169,8 @@ export default function ChatInterface() {
 
     try {
       const chatHeaders: HeadersInit = { 'Content-Type': 'application/json' }
-      if (geminiKey) chatHeaders['x-gemini-api-key'] = geminiKey
+      if (adminToken) chatHeaders['x-admin-token'] = adminToken
+      else if (geminiKey) chatHeaders['x-gemini-api-key'] = geminiKey
 
       const res = await fetch('/api/chat', {
         method: 'POST',
@@ -265,7 +264,7 @@ export default function ChatInterface() {
         error: message,
       }))
     }
-  }, [state.messages, state.dialogueMode])
+  }, [state.messages, state.dialogueMode, adminToken, geminiKey])
 
   const handlePanelToggle = (panel: PanelType) => {
     setState(s => ({ ...s, activePanel: s.activePanel === panel ? 'none' : panel }))
@@ -331,12 +330,13 @@ export default function ChatInterface() {
       case 'compare':
         return <TranslationComparePanel verseRef={state.activePanelVerse} />
       case 'search':
-        return <SearchPanel onPickVerse={handlePickVerse} geminiKey={geminiKey} />
+        return <SearchPanel onPickVerse={handlePickVerse} adminToken={adminToken} geminiKey={geminiKey} />
       case 'browse':
         return <BrowsePanel onPickVerse={handlePickVerse} translation={state.translation} />
       case 'themes':
         return (
           <ThemesPanel
+            adminToken={adminToken}
             geminiKey={geminiKey}
             onPickTheme={(prompt) => {
               setState(s => ({ ...s, activePanel: 'none' }))
@@ -345,7 +345,7 @@ export default function ChatInterface() {
           />
         )
       case 'original':
-        return <OriginalLanguagePanel verseRef={state.activePanelVerse} geminiKey={geminiKey} />
+        return <OriginalLanguagePanel verseRef={state.activePanelVerse} adminToken={adminToken} geminiKey={geminiKey} />
       case 'history':
         return (
           <HistoryPanel
@@ -375,7 +375,7 @@ export default function ChatInterface() {
         hanjaEnabled={hanjaEnabled}
         onHanjaToggle={setHanjaEnabled}
         accessMode={accessMode}
-        hasKey={accessMode === 'admin' || !!geminiKey}
+        hasKey={!!adminToken || !!geminiKey}
         onOpenAccessGate={() => setGateOpen(true)}
       />
       <div className="flex flex-1 overflow-hidden">

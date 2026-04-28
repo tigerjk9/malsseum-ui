@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { getModel, buildGeminiContents, parseSuggestions } from '@/lib/gemini'
 import { extractVerseRefs, stripVerseTags } from '@/lib/verse-parser'
 import { retrieve, expandQuery } from '@/lib/rag'
+import { verifyAdminToken } from '@/lib/auth'
 import type { ChatMessage, StreamChunk } from '@/lib/types'
 
 export const runtime = 'nodejs'
@@ -31,7 +32,17 @@ function buildRagBlock(hits: Awaited<ReturnType<typeof retrieve>>): string {
 }
 
 export async function POST(req: NextRequest) {
+  const adminToken = req.headers.get('x-admin-token') ?? ''
   const userApiKey = req.headers.get('x-gemini-api-key') ?? undefined
+  const isAdmin = verifyAdminToken(adminToken)
+
+  if (!isAdmin && !userApiKey) {
+    return new Response(
+      encode({ type: 'error', message: 'API 키 또는 관리자 인증이 필요합니다.' }),
+      { status: 401, headers: { 'Content-Type': 'text/event-stream' } }
+    )
+  }
+
   const body = await req.json() as { messages: ChatMessage[]; mode?: 'inductive' | 'free' }
 
   if (!body.messages?.length) {
@@ -55,8 +66,8 @@ export async function POST(req: NextRequest) {
         // Run RAG retrieval only in inductive mode — free mode is LLM-first conversation.
         let ragBlock = ''
         let ragCandidateKeys = new Set<string>()
-        const apiKey = userApiKey ?? process.env.GEMINI_API_KEY ?? ''
-        if (mode !== 'free' && lastUserText.trim() && apiKey) {
+        const ragKey = isAdmin ? (process.env.GEMINI_API_KEY ?? '') : (userApiKey ?? '')
+        if (mode !== 'free' && lastUserText.trim() && ragKey) {
           try {
             // For short follow-up messages, include recent context to improve retrieval quality.
             const userMessages = body.messages.filter(m => m.role === 'user')
@@ -64,8 +75,8 @@ export async function POST(req: NextRequest) {
               ? userMessages.slice(-3).map(m => m.rawContent ?? m.content).join(' ')
               : lastUserText
 
-            const expanded = await expandQuery(ragQuery, apiKey)
-            const allHits = await retrieve(expanded, RAG_TOP_K, apiKey)
+            const expanded = await expandQuery(ragQuery, ragKey)
+            const allHits = await retrieve(expanded, RAG_TOP_K, ragKey)
             const hits = allHits.filter((h) => h.score >= RAG_SCORE_THRESHOLD)
             console.log(`[chat] RAG: expanded="${expanded.slice(0, 80)}" hits=${allHits.length} above_threshold=${hits.length}`)
             ragCandidateKeys = new Set(hits.map(h => `${h.ref.book}:${h.ref.chapter}:${h.ref.verse}`))
@@ -87,7 +98,7 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        const model = getModel(userApiKey, mode)
+        const model = getModel(isAdmin ? undefined : userApiKey, mode)
         const result = await model.generateContentStream({ contents })
 
         let fullText = ''

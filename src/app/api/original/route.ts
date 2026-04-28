@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { fetchVerse } from '@/lib/bible-api'
 import { getOriginalModel } from '@/lib/gemini'
+import { verifyAdminToken } from '@/lib/auth'
 import { BOOK_IDS } from '@/lib/constants'
 import type { TranslationCode, VerseRef } from '@/lib/types'
 
@@ -27,11 +28,17 @@ export async function GET(req: NextRequest) {
   }
 
   const verseRef: VerseRef = { book, chapter, verse, translation: 'KRV' as TranslationCode }
+  const adminToken = req.headers.get('x-admin-token') ?? ''
   const userApiKey = req.headers.get('x-gemini-api-key') ?? undefined
+  const isAdmin = verifyAdminToken(adminToken)
+
+  if (!isAdmin && !userApiKey) {
+    return NextResponse.json({ error: 'API 키 또는 관리자 인증이 필요합니다.' }, { status: 401 })
+  }
 
   try {
     const verseData = await fetchVerse(verseRef)
-    const model = getOriginalModel(userApiKey)
+    const model = getOriginalModel(isAdmin ? undefined : userApiKey)
     const result = await model.generateContent(
       `구절: ${book} ${chapter}:${verse}\n본문(KRV): ${verseData.text}`
     )
