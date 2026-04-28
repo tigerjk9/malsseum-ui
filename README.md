@@ -63,7 +63,7 @@
 - **HMAC-SHA256 토큰** — `POST /api/auth`로 비밀번호 검증 → 서명 토큰 발급. 서명 키 = `AUTH_SECRET:ADMIN_PASSWORD`.
 - **사실상 영구 토큰 (100년 TTL)** — 비밀번호 변경(`ADMIN_PASSWORD` env var 교체)만으로 기존 토큰 전체 즉시 무효화.
 - **모든 API 라우트 인증 가드** — 401 응답 시 게이트 재표시(오류 화면 없음).
-- **TopBar 접속 전환** — 관리자 모드에서 "접속 전환" 버튼으로 일반 사용자 모드 전환 가능.
+- **TopBar LockIcon** — 자물쇠 아이콘 클릭으로 접속 방식 변경 가능 (Phase 13에서 별도 텍스트 버튼 제거 후 단일 진입점으로 통합).
 
 ### Phase 10 — UX 버그픽스 · 패널 리사이즈 (2026-04-28)
 - **새로고침 플래시 수정** — `isCheckingAccess` 초기 `true`로 localStorage 확인 전 채팅 UI 노출 방지.
