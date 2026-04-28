@@ -4,15 +4,16 @@ import Image from 'next/image'
 import { GEMINI_KEY_STORAGE_KEY, ACCESS_MODE_KEY, ADMIN_TOKEN_KEY } from '@/lib/constants'
 import { UserIcon } from './icons'
 
-type Step = 'select' | 'admin-pw' | 'key-input'
+type Step = 'welcome' | 'select' | 'admin-pw' | 'key-input'
 
 interface Props {
   onComplete: (mode: 'admin' | 'user', apiKey?: string, adminToken?: string) => void
   onClose?: () => void
+  savedAccess?: { mode: 'admin' | 'user' } | null
 }
 
-export default function AccessGate({ onComplete, onClose }: Props) {
-  const [step, setStep] = useState<Step>('select')
+export default function AccessGate({ onComplete, onClose, savedAccess }: Props) {
+  const [step, setStep] = useState<Step>(savedAccess ? 'welcome' : 'select')
   const [apiKey, setApiKey] = useState('')
   const [pw, setPw] = useState('')
   const [error, setError] = useState('')
@@ -124,6 +125,42 @@ export default function AccessGate({ onComplete, onClose }: Props) {
               하나님께 더 가까이 나아가도록 돕는 작은 도구입니다
             </p>
           </div>
+
+          {/* ── welcome (saved creds) ── */}
+          {step === 'welcome' && savedAccess && (
+            <div className="space-y-4">
+              <div className="rounded-[var(--radius-paper)] border border-[var(--clay-border)]/60
+                              bg-[var(--clay-light)]/40 px-3.5 py-3 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-[var(--radius-pill)] bg-[var(--ink-dark)]
+                                flex items-center justify-center text-[var(--hanji-cream)]
+                                text-[0.72rem] flex-shrink-0">
+                  {savedAccess.mode === 'admin' ? '✦' : <UserIcon width={16} height={16} />}
+                </div>
+                <div className="leading-snug">
+                  <div className="text-[0.78rem] text-[var(--ink-dark)]">
+                    {savedAccess.mode === 'admin' ? '관리자 모드' : '일반 접속자 모드'}
+                  </div>
+                  <div className="text-[0.7rem] text-[var(--ink-medium)] mt-0.5">
+                    저장된 정보로 바로 들어갈 수 있습니다
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={onClose}
+                className={btnPrimary(false)}
+              >
+                들어가기
+              </button>
+
+              <button
+                onClick={() => { resetError(); setStep('select') }}
+                className={btnBack}
+              >
+                접속 방식 변경
+              </button>
+            </div>
+          )}
 
           {/* ── select ── */}
           {step === 'select' && (

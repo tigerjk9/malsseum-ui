@@ -111,6 +111,7 @@ export default function ChatInterface() {
   const [adminToken, setAdminToken] = useState('')
   const [accessMode, setAccessMode] = useState<'admin' | 'user'>('user')
   const [gateOpen, setGateOpen] = useState(false)
+  const [gateForceSelect, setGateForceSelect] = useState(false)
   const [history, setHistory] = useState<SavedConversation[]>([])
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const userScrolledUp = useRef(false)
@@ -145,24 +146,24 @@ export default function ChatInterface() {
     if (savedToken && !isTokenExpired(savedToken)) {
       setAdminToken(savedToken)
       setAccessMode('admin')
-    } else {
-      if (savedToken) {
-        localStorage.removeItem(ADMIN_TOKEN_KEY)
-        localStorage.removeItem(ACCESS_MODE_KEY)
-      }
-      if (savedMode === 'user' && savedKey) {
-        setGeminiKey(savedKey)
-        setAccessMode('user')
-      } else {
-        setGateOpen(true)
-      }
+    } else if (savedToken) {
+      localStorage.removeItem(ADMIN_TOKEN_KEY)
+      localStorage.removeItem(ACCESS_MODE_KEY)
     }
+    if (savedMode === 'user' && savedKey) {
+      setGeminiKey(savedKey)
+      setAccessMode('user')
+    }
+    // 자격 증명 유무와 관계없이 매 방문마다 게이트(welcome 또는 select)를 노출.
+    // welcome 스텝은 저장된 자격 증명을 그대로 사용해 "들어가기" 한 번으로 진입.
+    setGateOpen(true)
     setIsCheckingAccess(false)
   }, [])
 
   const handleAccessComplete = (mode: 'admin' | 'user', apiKey?: string, token?: string) => {
     setAccessMode(mode)
     setGateOpen(false)
+    setGateForceSelect(false)
     if (mode === 'admin' && token) {
       setAdminToken(token)
       setGeminiKey('')
@@ -170,6 +171,16 @@ export default function ChatInterface() {
       setAdminToken('')
       setGeminiKey(apiKey)
     }
+  }
+
+  const closeGate = () => {
+    setGateOpen(false)
+    setGateForceSelect(false)
+  }
+
+  const openGateForChange = () => {
+    setGateForceSelect(true)
+    setGateOpen(true)
   }
 
   useEffect(() => {
@@ -448,7 +459,7 @@ export default function ChatInterface() {
         onHanjaToggle={setHanjaEnabled}
         accessMode={accessMode}
         hasKey={!!adminToken || !!geminiKey}
-        onOpenAccessGate={() => setGateOpen(true)}
+        onOpenAccessGate={openGateForChange}
       />
       <div className="flex flex-1 overflow-hidden">
         <IconSidebar activePanel={state.activePanel} onToggle={handlePanelToggle} />
@@ -500,7 +511,12 @@ export default function ChatInterface() {
       {gateOpen && (
         <AccessGate
           onComplete={handleAccessComplete}
-          onClose={!!(adminToken || geminiKey) ? () => setGateOpen(false) : undefined}
+          onClose={!!(adminToken || geminiKey) ? closeGate : undefined}
+          savedAccess={
+            !gateForceSelect && (adminToken || geminiKey)
+              ? { mode: accessMode }
+              : null
+          }
         />
       )}
     </div>
