@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { nanoid } from 'nanoid'
 import type { ChatMessage, AppState, PanelType, VerseRef, VerseData, SavedConversation, DialogueMode } from '@/lib/types'
-import { DEFAULT_TRANSLATION, GEMINI_KEY_STORAGE_KEY } from '@/lib/constants'
+import { DEFAULT_TRANSLATION, GEMINI_KEY_STORAGE_KEY, ACCESS_MODE_KEY } from '@/lib/constants'
 import { parseVerseRefString } from '@/lib/verse-parser'
 import MessageBubble from './MessageBubble'
 import ChatInput from './ChatInput'
@@ -17,6 +17,7 @@ import ThemesPanel from './panels/ThemesPanel'
 import OriginalLanguagePanel from './panels/OriginalLanguagePanel'
 import HistoryPanel from './panels/HistoryPanel'
 import HelpPanel from './panels/HelpPanel'
+import AccessGate from './AccessGate'
 
 const HISTORY_KEY = 'malsseum_history'
 const CURRENT_KEY = 'malsseum_current'
@@ -55,7 +56,7 @@ function makeTitle(messages: ChatMessage[]): string {
 const WELCOME_MESSAGE: ChatMessage = {
   id: 'welcome',
   role: 'assistant',
-  content: '안녕하세요. 저는 말씀 길잡이입니다.\n\n이 앱은 하나님께 더 가까이 나아가도록 돕는 작은 도구입니다. 한글 성경 31,103구절 전체를 의미 검색하여 질문과 가장 가까운 말씀을 찾고, 소크라테스식으로 함께 묵상합니다.\n\n✦ 귀납 모드 — 질문으로 이끄는 깊은 묵상\n✦ 자유 모드 — 편하게 나누는 대화\n✦ 검색 · 탐독 · 묵상 테마 · 원어 분석 · 번역 비교\n   (좌측 아이콘 또는 하단 메뉴로 열기)\n✦ ? 도움말에서 기능별 상세 안내를 확인하세요.',
+  content: '안녕하세요. 저는 말씀 길잡이입니다.\n\n이 앱은 하나님께 더 가까이 나아가도록 돕는 작은 도구입니다. 한글 성경 31,103구절에서 의미 검색으로 질문에 가장 가까운 말씀을 찾습니다.\n\n✦ 귀납 모드 — 질문으로 이끄는 깊은 묵상\n✦ 자유 모드 — 편하게 나누는 대화\n✦ 검색 · 탐독 · 테마 · 원어 · 번역 비교\n✦ 도움말 — 기능별 상세 안내',
   verses: [],
   suggestions: [
     { label: '용서에 대해', prompt: '용서에 대해 알고 싶어요' },
@@ -86,6 +87,8 @@ export default function ChatInterface() {
   })
   const [hanjaEnabled, setHanjaEnabled] = useState(false)
   const [geminiKey, setGeminiKey] = useState('')
+  const [accessMode, setAccessMode] = useState<'admin' | 'user'>('admin')
+  const [gateOpen, setGateOpen] = useState(false)
   const [history, setHistory] = useState<SavedConversation[]>([])
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const userScrolledUp = useRef(false)
@@ -102,6 +105,13 @@ export default function ChatInterface() {
     }
     const savedKey = localStorage.getItem(GEMINI_KEY_STORAGE_KEY) ?? ''
     setGeminiKey(savedKey)
+
+    const savedMode = localStorage.getItem(ACCESS_MODE_KEY) as 'admin' | 'user' | null
+    if (savedMode) {
+      setAccessMode(savedMode)
+    } else {
+      setGateOpen(true) // first visit → show access gate
+    }
   }, [])
 
   const handleGeminiKeyChange = (key: string) => {
@@ -110,6 +120,16 @@ export default function ChatInterface() {
       localStorage.setItem(GEMINI_KEY_STORAGE_KEY, key)
     } else {
       localStorage.removeItem(GEMINI_KEY_STORAGE_KEY)
+    }
+  }
+
+  const handleAccessComplete = (mode: 'admin' | 'user', apiKey?: string) => {
+    setAccessMode(mode)
+    setGateOpen(false)
+    if (mode === 'admin') {
+      setGeminiKey('')
+    } else if (apiKey) {
+      setGeminiKey(apiKey)
     }
   }
 
@@ -345,8 +365,9 @@ export default function ChatInterface() {
         onNewChat={handleNewChat}
         hanjaEnabled={hanjaEnabled}
         onHanjaToggle={setHanjaEnabled}
-        geminiKey={geminiKey}
-        onGeminiKeyChange={handleGeminiKeyChange}
+        accessMode={accessMode}
+        hasKey={accessMode === 'admin' || !!geminiKey}
+        onOpenAccessGate={() => setGateOpen(true)}
       />
       <div className="flex flex-1 overflow-hidden">
         <IconSidebar activePanel={state.activePanel} onToggle={handlePanelToggle} />
@@ -389,6 +410,13 @@ export default function ChatInterface() {
       <SlidePanel open={panelOpen} title={panelTitle} onClose={handleClosePanel}>
         {renderPanelBody()}
       </SlidePanel>
+
+      {gateOpen && (
+        <AccessGate
+          onComplete={handleAccessComplete}
+          onClose={accessMode ? () => setGateOpen(false) : undefined}
+        />
+      )}
     </div>
   )
 }

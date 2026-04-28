@@ -1,10 +1,9 @@
 'use client'
-import { useState, useRef, useEffect } from 'react'
 import { TRANSLATION_LABELS } from '@/lib/constants'
 import type { TranslationCode } from '@/lib/types'
 import ThemeToggle from './ThemeToggle'
 import HanjaToggle from './HanjaToggle'
-import { PlusIcon, KeyIcon } from './icons'
+import { PlusIcon, LockIcon } from './icons'
 
 interface Props {
   translation: TranslationCode
@@ -12,8 +11,9 @@ interface Props {
   onNewChat: () => void
   hanjaEnabled: boolean
   onHanjaToggle: (enabled: boolean) => void
-  geminiKey: string
-  onGeminiKeyChange: (key: string) => void
+  accessMode: 'admin' | 'user'
+  hasKey: boolean
+  onOpenAccessGate: () => void
 }
 
 const TRANSLATIONS: TranslationCode[] = ['KRV', 'RNKSV', 'NIV', 'ESV', 'KJV']
@@ -21,31 +21,9 @@ const TRANSLATIONS: TranslationCode[] = ['KRV', 'RNKSV', 'NIV', 'ESV', 'KJV']
 export default function TopBar({
   translation, onTranslationChange, onNewChat,
   hanjaEnabled, onHanjaToggle,
-  geminiKey, onGeminiKeyChange,
+  accessMode, hasKey, onOpenAccessGate,
 }: Props) {
-  const [showKeyInput, setShowKeyInput] = useState(false)
-  const [inputValue, setInputValue] = useState(geminiKey)
-  const popoverRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    setInputValue(geminiKey)
-  }, [geminiKey])
-
-  useEffect(() => {
-    if (!showKeyInput) return
-    const handler = (e: MouseEvent) => {
-      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
-        setShowKeyInput(false)
-      }
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [showKeyInput])
-
-  const saveKey = () => {
-    onGeminiKeyChange(inputValue.trim())
-    setShowKeyInput(false)
-  }
+  const keyActive = accessMode === 'admin' || hasKey
 
   return (
     <header className="flex items-center justify-between px-4 py-2
@@ -76,71 +54,25 @@ export default function TopBar({
           <PlusIcon width={16} height={16} />
         </button>
 
-        {/* API 키 설정 버튼 */}
-        <div className="relative" ref={popoverRef}>
-          <button
-            onClick={() => setShowKeyInput((v) => !v)}
-            aria-label="Gemini API 키 설정"
-            title={geminiKey ? 'API 키 설정됨' : 'API 키 설정'}
-            className={`w-8 h-8 flex items-center justify-center rounded-[var(--radius-control)]
-                       transition-colors
-                       ${geminiKey
-                         ? 'text-[var(--clay)] bg-[var(--clay-light)]'
-                         : 'text-[var(--ink-medium)]/70 hover:text-[var(--clay)] hover:bg-[var(--clay-light)]'
-                       }`}
-          >
-            <KeyIcon width={16} height={16} />
-          </button>
-
-          {showKeyInput && (
-            <div className="absolute top-full right-0 mt-1.5 w-72
-                            bg-[var(--hanji-cream)] border border-[var(--clay-border)]
-                            rounded-[var(--radius-paper)] p-3 shadow-lg z-50 space-y-2.5">
-              <p className="text-[0.7rem] text-[var(--ink-medium)] font-medium">
-                Gemini API 키
-              </p>
-              <div className="flex gap-1.5">
-                <input
-                  type="password"
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') saveKey()
-                    if (e.key === 'Escape') setShowKeyInput(false)
-                  }}
-                  placeholder="AIza..."
-                  autoFocus
-                  className="flex-1 text-[0.8rem] bg-[var(--paper-white)]
-                             border border-[var(--clay-border)]
-                             rounded-[var(--radius-control)] px-2.5 py-1.5
-                             text-[var(--ink-dark)] placeholder:text-[var(--ink-medium)] placeholder:opacity-50
-                             focus-within:border-[var(--clay)]"
-                />
-                {inputValue && (
-                  <button
-                    onClick={() => { setInputValue(''); onGeminiKeyChange('') }}
-                    className="text-[0.7rem] px-2 py-1 rounded-[var(--radius-control)]
-                               text-[var(--ink-medium)]/70 hover:text-[var(--clay)]
-                               hover:bg-[var(--clay-light)] transition-colors"
-                  >
-                    지우기
-                  </button>
-                )}
-              </div>
-              <button
-                onClick={saveKey}
-                className="w-full py-1.5 rounded-[var(--radius-control)]
-                           bg-[var(--ink-dark)] text-[var(--hanji-cream)]
-                           text-[0.75rem] hover:bg-[var(--clay)] transition-colors"
-              >
-                저장
-              </button>
-              <p className="text-[0.65rem] text-[var(--ink-medium)] opacity-70 leading-snug">
-                입력 시 서버 환경 변수 대신 사용됩니다. 브라우저 로컬 스토리지에만 저장됩니다.
-              </p>
-            </div>
+        {/* 접속 모드 / API 키 상태 */}
+        <button
+          onClick={onOpenAccessGate}
+          aria-label={accessMode === 'admin' ? '관리자 모드' : (hasKey ? 'API 키 설정됨' : 'API 키 미설정')}
+          title={accessMode === 'admin' ? '관리자 모드 · 변경하려면 클릭' : (hasKey ? 'API 키 설정됨 · 변경' : 'API 키 설정 필요')}
+          className={`w-8 h-8 flex items-center justify-center rounded-[var(--radius-control)]
+                     transition-colors relative
+                     ${keyActive
+                       ? 'text-[var(--clay)] bg-[var(--clay-light)]'
+                       : 'text-[var(--ink-medium)]/70 hover:text-[var(--clay)] hover:bg-[var(--clay-light)]'
+                     }`}
+        >
+          <LockIcon width={16} height={16} />
+          {/* Warning dot when user mode but no key */}
+          {accessMode === 'user' && !hasKey && (
+            <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full
+                             bg-amber-400 ring-1 ring-[var(--hanji-cream)]" />
           )}
-        </div>
+        </button>
 
         <span className="hidden md:inline-flex">
           <HanjaToggle enabled={hanjaEnabled} onChange={onHanjaToggle} />

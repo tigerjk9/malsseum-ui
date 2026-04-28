@@ -108,11 +108,20 @@ export function PlusIcon(props: SVGProps<SVGSVGElement>) {
   )
 }
 
-export function KeyIcon(props: SVGProps<SVGSVGElement>) {
+export function LockIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg {...baseProps} {...props}>
-      <circle cx="7" cy="10" r="3.5" />
-      <path d="M10 10h7M15 10v2M17 10v2" />
+      <rect x="4.5" y="9" width="11" height="8" rx="1.5" />
+      <path d="M7.5 9V6.5a2.5 2.5 0 0 1 5 0V9" />
+    </svg>
+  )
+}
+
+export function UserIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...baseProps} {...props}>
+      <circle cx="10" cy="7.5" r="3" />
+      <path d="M4 17.5c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5" />
     </svg>
   )
 }
