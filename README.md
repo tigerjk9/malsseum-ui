@@ -54,6 +54,23 @@
 - **모바일 최적화** — `h-screen` → `h-dvh` (iOS Safari 채팅창 BottomNav 가림 해결)
 - **앱 철학 반영** — 환영 메시지·도움말·AI 시스템 프롬프트 전체에 "하나님께 더 가까이 나아가도록 돕는 작은 도구" 삽입
 
+### Phase 8 — 접근 게이트 · 제안 UX · OG 이미지 (2026-04-28)
+- **최초방문 AccessGate** — 관리자(비밀번호) / 일반 접속자(Gemini API 키) 선택 화면. 토큰/키 유효 시 재방문 스킵.
+- **후속 제안 칩 개편** — `label|prompt` 분리 형식, 3방향 가이드(적용·탐구·내면)
+- **OG 이미지** — `public/og-image.png` (2848×1504), layout.tsx openGraph·twitter:card 메타
+
+### Phase 9 — 서버사이드 관리자 인증 (2026-04-28)
+- **HMAC-SHA256 토큰** — `POST /api/auth`로 비밀번호 검증 → 서명 토큰 발급. 서명 키 = `AUTH_SECRET:ADMIN_PASSWORD`.
+- **사실상 영구 토큰 (100년 TTL)** — 비밀번호 변경(`ADMIN_PASSWORD` env var 교체)만으로 기존 토큰 전체 즉시 무효화.
+- **모든 API 라우트 인증 가드** — 401 응답 시 게이트 재표시(오류 화면 없음).
+- **TopBar 접속 전환** — 관리자 모드에서 "접속 전환" 버튼으로 일반 사용자 모드 전환 가능.
+
+### Phase 10 — UX 버그픽스 · 패널 리사이즈 (2026-04-28)
+- **새로고침 플래시 수정** — `isCheckingAccess` 초기 `true`로 localStorage 확인 전 채팅 UI 노출 방지.
+- **모드 드리프트 수정** — 귀납↔자유 모드 전환 시 이력 패턴이 지속되는 버그 수정: 서버에서 매 요청 마지막 유저 메시지에 모드 형식 지침 주입.
+- **사이드 패널 너비 조절** — 왼쪽 가장자리 드래그로 240~600px 리사이즈. `localStorage('malsseum_panel_width')` 저장.
+- **모바일 바텀 시트** — 패널이 풀스크린 대신 75vh 높이로 아래에서 슬라이드. 상단 드래그 필로 스와이프 다운 닫기.
+
 ---
 
 ## 시작하기
@@ -144,13 +161,14 @@ npm run build    # 프로덕션 빌드 확인
 
 | 라우트 | 메서드 | 용도 |
 |--------|--------|------|
-| `/api/chat` | POST | Gemini 대화 SSE 스트리밍 |
+| `/api/auth` | POST | 관리자 비밀번호 검증 → HMAC 토큰 발급 |
+| `/api/chat` | POST | Gemini 대화 SSE 스트리밍 (`x-admin-token` or `x-gemini-api-key` 헤더) |
 | `/api/verse?ref=John:3:16` | GET | 단일 구절 조회 |
 | `/api/search?q=...&mode=keyword\|theme` | GET | 검색 (Gemini 키워드 / 로컬 테마) |
 | `/api/original?ref=John:3:16` | GET | 헬라어/히브리어 원어 분석 |
 | `/api/browse` | GET | 책/장/절 탐색 |
 
-모든 Gemini 의존 라우트는 `x-gemini-api-key` 헤더로 BYO 키도 받습니다 (서버 환경변수 우선순위 fallback).
+모든 Gemini 의존 라우트는 `x-admin-token`(관리자) 또는 `x-gemini-api-key`(일반) 헤더 중 하나를 요구합니다.
 
 ---
 
@@ -203,8 +221,13 @@ src/
 
 ### Vercel (현재 운영)
 1. https://vercel.com/new 에서 GitHub repo import
-2. **Environment Variables** → `GEMINI_API_KEY` 추가 (Production · Preview · Development 모두)
+2. **Environment Variables** → 아래 세 변수를 Production · Preview · Development 모두에 추가:
+   - `GEMINI_API_KEY` — 관리자 모드용 Gemini 키
+   - `ADMIN_PASSWORD` — 관리자 접속 비밀번호 (변경 시 기존 토큰 자동 무효화)
+   - `AUTH_SECRET` — 토큰 서명 시크릿 (임의 랜덤 문자열, 최초 1회 설정)
 3. Deploy → 자동으로 `main` 브랜치 push 감지하여 빌드
+
+> ⚠️ 환경변수 추가 후에는 **Redeploy**가 필요합니다. Vercel은 env var 추가만으로 자동 재배포하지 않습니다.
 
 ### 로컬 → Vercel CLI (선택)
 ```bash
@@ -228,6 +251,9 @@ vercel --prod
 | (미태그) | Phase 4.5 | 디자인 폴리시 (IBM Plex Sans KR, 반경 토큰, SVG 아이콘, 다크 모드 가독성) |
 | (미태그) | Phase 6 | 검색 품질·BYO 키 UI·한지 텍스처 복구 |
 | (미태그) | Phase 7 | RAG 품질 하드닝·HelpPanel·동적 ThemesPanel·iOS 수정·철학 반영 |
+| (미태그) | Phase 8 | AccessGate·제안 칩 UX·OG 이미지 |
+| (미태그) | Phase 9 | 서버사이드 HMAC 관리자 인증·영구 토큰·접속 전환 버튼 |
+| (미태그) | Phase 10 | 모드 드리프트 수정·패널 드래그 리사이즈·모바일 바텀 시트 |
 
 ---
 

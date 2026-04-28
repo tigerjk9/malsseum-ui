@@ -41,7 +41,7 @@ Defined in `src/app/globals.css`. Light mode in `:root`, dark mode in `.dark`.
 - **Dark mode**: every accent (`--clay`, `--clay-light`, `--clay-border`, `--suggestion-bg`) is overridden — naive surface flip is not enough. The light-mode brown clay (`#8b6343`) drops to ~2.3:1 on dark bg; dark mode uses a brighter clay (`#d6a87d`, ~6.7:1 AA).
 - **Radius scale**: `--radius-paper` (8px, surfaces), `--radius-control` (10px, inputs/buttons), `--radius-pill` (9999px, chips). Apply via `rounded-[var(--radius-*)]` (Tailwind arbitrary value, not the named utility — v4 utility generation for token names is unreliable here).
 - **Background**: `body::before` carries an SVG `feTurbulence` hanji fiber overlay (multiply blend in light, screen in dark). `ChatInterface` 루트 div는 배경 없음(투명) → body background + body::before 텍스처가 메시지 스크롤 영역에 자연히 노출. TopBar/IconSidebar/ChatInput은 각자 `bg-[var(--hanji-cream)]` 보유로 텍스처 없이 유지.
-- **Motion**: only `transform` and `opacity` are animated. `transition-[margin]` is banned. Panel slide uses `panel-enter` keyframes (`translateX 100%→0`, 220ms). `prefers-reduced-motion` collapses all animation/transition durations to ~0ms globally.
+- **Motion**: only `transform` and `opacity` are animated. `transition-[margin]` is banned. Panel slide uses `panel-enter` class: on desktop `translateX(100%→0)`, on mobile `translateY(100%→0)` — `globals.css` splits the animation via `@media (max-width: 767px)`. `prefers-reduced-motion` collapses all animation/transition durations to ~0ms globally.
 - **Focus**: global `*:focus-visible { outline: 2px solid var(--clay); outline-offset: 2px }`. Don't add `focus:outline-none` on form controls — it overrides the global ring. ChatInput textarea is the one exception (parent uses `focus-within:border-[var(--clay)]` instead).
 
 ## Key files
@@ -60,6 +60,7 @@ Defined in `src/app/globals.css`. Light mode in `:root`, dark mode in `.dark`.
 | `src/lib/auth.ts` | HMAC-SHA256 토큰 서명/검증. `signAdminToken()` · `verifyAdminToken()`. 서명 키 = `AUTH_SECRET:ADMIN_PASSWORD`. |
 | `src/app/api/auth/route.ts` | `POST /api/auth` — 비밀번호 검증 → 토큰 반환. Vercel 환경변수 `ADMIN_PASSWORD` · `AUTH_SECRET` 필요. |
 | `src/components/AccessGate.tsx` | 최초방문 접근 게이트 — 관리자(비밀번호 → 토큰)/일반(Gemini API 키) 선택, hero 이미지 포함. |
+| `src/components/SlidePanel.tsx` | 오른쪽 슬라이드 패널. 데스크톱: 드래그 리사이즈(240~600px), 모바일: 75vh 바텀 시트 + 스와이프 다운 닫기. |
 | `src/components/panels/HelpPanel.tsx` | 8개 섹션 기능 안내 패널. 정적 컨텐츠, props 없음. |
 | `scripts/build-rag-index.mjs` | One-time RAG index builder (`npm run build:rag`). |
 | `scripts/smoke-rag.mjs` | Local RAG quality smoke test. |
@@ -84,6 +85,9 @@ npm run build:rag    # rebuild RAG index (~50min, needs GEMINI_API_KEY)
 - **24 MB binary in git**. `public/rag/verses-embed.bin` is committed. This bloats clone but keeps deploy a single push and avoids Vercel Blob/Storage setup. Re-evaluate if size > 50 MB.
 - **`runtime = 'nodejs'` on all API routes**. We need `node:zlib` for gunzip and `Buffer` for binary parsing. Edge runtime can't load the 24MB index efficiently anyway.
 - **`temperature: 0.2-0.7` varies per route**. 0.2 for original-word JSON (deterministic), 0.3 for search (low-creativity), 0.7 for chat (warmer).
+- **`isCheckingAccess` initial state is `true`** in `ChatInterface`. Before the mount-time `useEffect` reads localStorage, the component returns a blank `<div className="flex flex-col h-dvh" />`. This prevents a one-frame flash of the chat UI when a first-time visitor hard-refreshes (gateOpen starts false, useEffect sets it true — but there's a render in between).
+- **`modeHint` injected into the last user message** in `chat/route.ts`, not just in the system prompt. Gemini prioritises in-context patterns over system instructions when recent history demonstrates a different style. The hint (`[응답 형식 지침: ...]`) appears right before the model generates, overriding history drift every turn.
+- **Panel width via CSS custom property, not inline `style={{ width }}`**. `position: fixed; left: 0; right: 0;` with an explicit `width` on the same element causes the left/right constraints to win on mobile (full-width), breaking the 280px desktop value. Instead, `--panel-w` is set via inline style and `.panel-desktop-w` applies `width: var(--panel-w)` only at `min-width: 768px`. Similarly `.md-panel-shift` drives the main content `margin-right` via `--panel-width`.
 
 ## Don'ts
 
@@ -104,6 +108,8 @@ npm run build:rag    # rebuild RAG index (~50min, needs GEMINI_API_KEY)
 - **Don't call `/api/search` without score filtering**. `SCORE_THRESHOLD = 0.45` in `search/route.ts` gates results. Below this threshold, return `{ results: [], message: '...' }`. Don't lower it without testing against the §4.1 benchmark queries.
 - **Don't lower `RAG_SCORE_THRESHOLD` below 0.55 in `/api/chat`**. Chat threshold (0.55) is higher than search (0.45) because low-quality RAG candidates injected into the LLM context cause hallucinated verse citations. Free mode skips RAG entirely — don't add it back.
 - **Don't run RAG in free mode**. `mode !== 'free'` guard in `chat/route.ts` is intentional. Free mode is LLM-context-first conversation; RAG only adds latency and can push the model toward citations the user didn't ask for.
+- **Don't remove the `modeHint` injection** in `chat/route.ts`. Without it, switching from free → inductive mid-conversation causes the model to continue the free-mode style (in-context pattern beats system prompt). The hint must come after the RAG block as the last text before the model generates.
+- **Don't set `isCheckingAccess` initial value to `false`** in `ChatInterface`. It must be `true` so the blank placeholder renders during the synchronous localStorage read, preventing the one-frame chat UI flash on hard refresh.
 
 ## Related projects (separate repos)
 
