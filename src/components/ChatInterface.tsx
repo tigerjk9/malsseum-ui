@@ -116,14 +116,24 @@ export default function ChatInterface() {
   const userScrolledUp = useRef(false)
 
   useEffect(() => {
-    setHistory(loadHistory())
+    const loadedHistory = loadHistory()
     const session = loadCurrentSession()
+    // 새로고침/재방문 시 직전 대화는 history로 자동 아카이브하고 welcome 상태로 시작.
+    // 사용자는 "대화 기록" 패널에서 복원할 수 있다.
     if (session?.messages.some(m => m.role === 'user')) {
-      setState(s => ({
-        ...s,
+      const archived: SavedConversation = {
+        id: nanoid(),
+        title: makeTitle(session.messages.filter(m => m.id !== 'welcome')),
         messages: session.messages,
+        savedAt: Date.now(),
         dialogueMode: session.dialogueMode ?? 'inductive',
-      }))
+      }
+      const updated = [archived, ...loadedHistory].slice(0, MAX_HISTORY)
+      persistHistory(updated)
+      setHistory(updated)
+      localStorage.removeItem(CURRENT_KEY)
+    } else {
+      setHistory(loadedHistory)
     }
     const savedPanelWidth = parseInt(localStorage.getItem(PANEL_WIDTH_KEY) ?? '', 10)
     if (savedPanelWidth >= 240 && savedPanelWidth <= 600) setPanelWidth(savedPanelWidth)
@@ -341,6 +351,23 @@ export default function ChatInterface() {
     }))
   }
 
+  const handleClearChat = () => {
+    const realMessages = state.messages.filter(m => m.id !== 'welcome')
+    if (!realMessages.some(m => m.role === 'user')) return
+    if (typeof window !== 'undefined' &&
+        !window.confirm('현재 대화 내역을 모두 지우시겠습니까?\n저장되지 않으며 복구할 수 없습니다.')) {
+      return
+    }
+    localStorage.removeItem(CURRENT_KEY)
+    setState(s => ({
+      ...s,
+      messages: [WELCOME_MESSAGE],
+      activePanel: 'none',
+      activePanelVerse: null,
+      error: null,
+    }))
+  }
+
   const handleRestore = (conv: SavedConversation) => {
     setState(s => ({
       ...s,
@@ -415,6 +442,8 @@ export default function ChatInterface() {
         translation={state.translation}
         onTranslationChange={(t) => setState(s => ({ ...s, translation: t }))}
         onNewChat={handleNewChat}
+        onClearChat={handleClearChat}
+        canClearChat={state.messages.some(m => m.role === 'user')}
         hanjaEnabled={hanjaEnabled}
         onHanjaToggle={setHanjaEnabled}
         accessMode={accessMode}

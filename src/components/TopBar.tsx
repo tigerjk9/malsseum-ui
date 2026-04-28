@@ -3,12 +3,14 @@ import { TRANSLATION_LABELS } from '@/lib/constants'
 import type { TranslationCode } from '@/lib/types'
 import ThemeToggle from './ThemeToggle'
 import HanjaToggle from './HanjaToggle'
-import { PlusIcon, LockIcon } from './icons'
+import { PlusIcon, LockIcon, TrashIcon } from './icons'
 
 interface Props {
   translation: TranslationCode
   onTranslationChange: (t: TranslationCode) => void
   onNewChat: () => void
+  onClearChat: () => void
+  canClearChat: boolean
   hanjaEnabled: boolean
   onHanjaToggle: (enabled: boolean) => void
   accessMode: 'admin' | 'user'
@@ -20,6 +22,7 @@ const TRANSLATIONS: TranslationCode[] = ['KRV', 'RNKSV', 'NIV', 'ESV', 'KJV']
 
 export default function TopBar({
   translation, onTranslationChange, onNewChat,
+  onClearChat, canClearChat,
   hanjaEnabled, onHanjaToggle,
   accessMode, hasKey, onOpenAccessGate,
 }: Props) {
@@ -52,6 +55,19 @@ export default function TopBar({
                      transition-colors"
         >
           <PlusIcon width={16} height={16} />
+        </button>
+
+        <button
+          onClick={onClearChat}
+          disabled={!canClearChat}
+          aria-label="현재 대화 내역 초기화"
+          title="현재 대화 내역 초기화 (저장 없이 지움)"
+          className="w-8 h-8 flex items-center justify-center rounded-[var(--radius-control)]
+                     text-[var(--ink-medium)]/70 hover:text-[var(--clay)] hover:bg-[var(--clay-light)]
+                     transition-colors disabled:opacity-30 disabled:cursor-not-allowed
+                     disabled:hover:bg-transparent disabled:hover:text-[var(--ink-medium)]/70"
+        >
+          <TrashIcon width={16} height={16} />
         </button>
 
         {/* 관리자 → 접속 전환 */}

@@ -135,3 +135,14 @@ export function QuestionIcon(props: SVGProps<SVGSVGElement>) {
     </svg>
   )
 }
+
+export function TrashIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...baseProps} {...props}>
+      <path d="M4 6h12" />
+      <path d="M8 6V4.5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1V6" />
+      <path d="M5.5 6l.7 9.2a1.5 1.5 0 0 0 1.5 1.3h4.6a1.5 1.5 0 0 0 1.5-1.3L14.5 6" />
+      <path d="M8.5 9.5v4M11.5 9.5v4" />
+    </svg>
+  )
+}
