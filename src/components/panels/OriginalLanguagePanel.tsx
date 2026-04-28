@@ -5,6 +5,7 @@ import type { VerseRef } from '@/lib/types'
 
 interface Props {
   verseRef: VerseRef | null
+  geminiKey?: string
 }
 
 interface OriginalWord {
@@ -25,7 +26,7 @@ interface OriginalResponse {
 
 type Status = 'idle' | 'loading' | 'ok' | 'error'
 
-export default function OriginalLanguagePanel({ verseRef }: Props) {
+export default function OriginalLanguagePanel({ verseRef, geminiKey }: Props) {
   const [status, setStatus] = useState<Status>('idle')
   const [data, setData] = useState<OriginalResponse | null>(null)
   const [errorMsg, setErrorMsg] = useState('')
@@ -43,7 +44,9 @@ export default function OriginalLanguagePanel({ verseRef }: Props) {
     setErrorMsg('')
 
     const refStr = `${verseRef.book}:${verseRef.chapter}:${verseRef.verse}`
-    fetch(`/api/original?ref=${refStr}`, { signal: controller.signal })
+    const originalHeaders: HeadersInit = {}
+    if (geminiKey) originalHeaders['x-gemini-api-key'] = geminiKey
+    fetch(`/api/original?ref=${refStr}`, { signal: controller.signal, headers: originalHeaders })
       .then(async (res) => {
         if (!res.ok) {
           const body = await res.json().catch(() => ({}))
@@ -64,7 +67,7 @@ export default function OriginalLanguagePanel({ verseRef }: Props) {
       })
 
     return () => controller.abort()
-  }, [verseRef])
+  }, [verseRef, geminiKey])
 
   if (!verseRef) {
     return (

@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { nanoid } from 'nanoid'
 import type { ChatMessage, AppState, PanelType, VerseRef, VerseData, SavedConversation, DialogueMode } from '@/lib/types'
-import { DEFAULT_TRANSLATION } from '@/lib/constants'
+import { DEFAULT_TRANSLATION, GEMINI_KEY_STORAGE_KEY } from '@/lib/constants'
 import { parseVerseRefString } from '@/lib/verse-parser'
 import MessageBubble from './MessageBubble'
 import ChatInput from './ChatInput'
@@ -83,6 +83,7 @@ export default function ChatInterface() {
     dialogueMode: 'inductive',
   })
   const [hanjaEnabled, setHanjaEnabled] = useState(false)
+  const [geminiKey, setGeminiKey] = useState('')
   const [history, setHistory] = useState<SavedConversation[]>([])
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const userScrolledUp = useRef(false)
@@ -97,7 +98,18 @@ export default function ChatInterface() {
         dialogueMode: session.dialogueMode ?? 'inductive',
       }))
     }
+    const savedKey = localStorage.getItem(GEMINI_KEY_STORAGE_KEY) ?? ''
+    setGeminiKey(savedKey)
   }, [])
+
+  const handleGeminiKeyChange = (key: string) => {
+    setGeminiKey(key)
+    if (key) {
+      localStorage.setItem(GEMINI_KEY_STORAGE_KEY, key)
+    } else {
+      localStorage.removeItem(GEMINI_KEY_STORAGE_KEY)
+    }
+  }
 
   useEffect(() => {
     if (state.isLoading) return
@@ -127,9 +139,12 @@ export default function ChatInterface() {
     }))
 
     try {
+      const chatHeaders: HeadersInit = { 'Content-Type': 'application/json' }
+      if (geminiKey) chatHeaders['x-gemini-api-key'] = geminiKey
+
       const res = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: chatHeaders,
         body: JSON.stringify({
           messages: [...state.messages, userMsg]
             .filter(m => m.id !== 'welcome')
@@ -285,7 +300,7 @@ export default function ChatInterface() {
       case 'compare':
         return <TranslationComparePanel verseRef={state.activePanelVerse} />
       case 'search':
-        return <SearchPanel onPickVerse={handlePickVerse} />
+        return <SearchPanel onPickVerse={handlePickVerse} geminiKey={geminiKey} />
       case 'browse':
         return <BrowsePanel onPickVerse={handlePickVerse} translation={state.translation} />
       case 'themes':
@@ -298,7 +313,7 @@ export default function ChatInterface() {
           />
         )
       case 'original':
-        return <OriginalLanguagePanel verseRef={state.activePanelVerse} />
+        return <OriginalLanguagePanel verseRef={state.activePanelVerse} geminiKey={geminiKey} />
       case 'history':
         return (
           <HistoryPanel
@@ -318,13 +333,15 @@ export default function ChatInterface() {
 
 
   return (
-    <div className="flex flex-col h-screen bg-[var(--hanji-warm)]">
+    <div className="flex flex-col h-screen">
       <TopBar
         translation={state.translation}
         onTranslationChange={(t) => setState(s => ({ ...s, translation: t }))}
         onNewChat={handleNewChat}
         hanjaEnabled={hanjaEnabled}
         onHanjaToggle={setHanjaEnabled}
+        geminiKey={geminiKey}
+        onGeminiKeyChange={handleGeminiKeyChange}
       />
       <div className="flex flex-1 overflow-hidden">
         <IconSidebar activePanel={state.activePanel} onToggle={handlePanelToggle} />

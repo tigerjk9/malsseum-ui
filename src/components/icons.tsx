@@ -107,3 +107,12 @@ export function PlusIcon(props: SVGProps<SVGSVGElement>) {
     </svg>
   )
 }
+
+export function KeyIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...baseProps} {...props}>
+      <circle cx="7" cy="10" r="3.5" />
+      <path d="M10 10h7M15 10v2M17 10v2" />
+    </svg>
+  )
+}

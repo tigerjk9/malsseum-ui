@@ -55,3 +55,5 @@ export const BOLLS_TRANSLATIONS: TranslationCode[] = ['KRV', 'RNKSV', 'NIV', 'ES
 export const GETBIBLE_TRANSLATIONS: TranslationCode[] = ['KJV', 'WEB']
 
 export const DEFAULT_TRANSLATION: TranslationCode = 'KRV'
+
+export const GEMINI_KEY_STORAGE_KEY = 'malsseum_gemini_key'

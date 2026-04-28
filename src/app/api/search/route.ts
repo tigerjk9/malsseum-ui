@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { retrieve } from '@/lib/rag'
+import { retrieve, expandQuery } from '@/lib/rag'
 import type { TranslationCode, VerseRef } from '@/lib/types'
 
 export const runtime = 'nodejs'
@@ -13,6 +13,7 @@ interface SearchResult {
 }
 
 const TOP_K = 5
+const SCORE_THRESHOLD = 0.45
 
 export async function GET(req: NextRequest) {
   const q = req.nextUrl.searchParams.get('q')?.trim()
@@ -33,7 +34,15 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const hits = await retrieve(q, TOP_K, apiKey)
+    const expanded = await expandQuery(q, apiKey)
+    const allHits = await retrieve(expanded, TOP_K, apiKey)
+    const hits = allHits.filter((h) => h.score >= SCORE_THRESHOLD)
+    console.log(`[search] query="${q}" expanded="${expanded.slice(0, 80)}" hits=${allHits.length} above_threshold=${hits.length}`)
+
+    if (hits.length === 0) {
+      return NextResponse.json({ query: q, results: [], message: '관련 구절을 찾지 못했습니다. 다른 표현으로 검색해 보세요.' })
+    }
+
     const results: SearchResult[] = hits.map((h) => ({
       ref: {
         book: h.ref.book,

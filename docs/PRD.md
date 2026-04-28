@@ -4,7 +4,7 @@
 
 **Live**: https://malsseum-ui.vercel.app
 **Repo**: https://github.com/tigerjk9/malsseum-ui (default branch: `main`)
-**Status**: Phase 4 (RAG) + Phase 4.5 (design polish) shipped (2026-04-27); Phase 5 (UX polish) shipped (2026-04-28)
+**Status**: Phase 4 (RAG) + Phase 4.5 (design polish) shipped (2026-04-27); Phase 5 (UX polish) + Phase 6 (search quality + BYO key UI + hanji texture) shipped (2026-04-28)
 
 ---
 
@@ -130,6 +130,7 @@
 | `v0.3.0-phase3` | 깊이 도구 | 원어 분석, 한자 토글, 다크모드, BottomNav, 12 테마 |
 | (미태그) | Phase 4 | **RAG** (`gemini-embedding-001` + int8 quantized index + in-memory cosine) |
 | (미태그) | Phase 4.5 | **디자인 폴리시** — Inter→IBM Plex Sans KR, 반경 토큰 위계, 9개 SVG 아이콘 (emoji 제거), 한지 노이즈 텍스처, 다크 모드 클레이 액센트 AA 충족, 40px 터치 타깃, `prefers-reduced-motion` 가드, transform-only 패널 슬라이드, 12 atomic 커밋 |
+| (미태그) | Phase 6 | **검색 품질·UX 개선** — `/api/search` query expansion + score 게이팅(0.45), BYO Gemini API 키 UI (TopBar KeyIcon + localStorage), 한지 텍스처 가시성 복구 (ChatInterface 루트 bg 제거) |
 
 ---
 
@@ -200,11 +201,12 @@ Q: 믿음
 
 ## 6. 로드맵 (Phase 5+)
 
-### 6.1 즉시 가치 / 낮은 노력
-- **검색 점수 확신도 게이팅**: cosine < 0.55 인 후보는 제외하고 사용자에게 "관련 구절을 찾지 못했다" 안내. (지금은 무조건 top-K 반환 → 부적합 후보를 LLM이 인용할 위험)
-- **Per-verse context window**: 임베딩 시 전후 1-2 구절을 합쳐 인덱싱 (인덱스 크기 동일, 의미 더 풍부).
-- **Query expansion**: 사용자 쿼리를 Gemini로 1회 paraphrase → 2개 임베딩 평균. recall 개선.
-- **한지 노이즈 가시성 복구**: Phase 4.5에서 추가한 `body::before` 한지 섬유 텍스처가 `ChatInterface` 솔리드 bg에 가려져 있음. 메시지 스크롤 영역에 노출되도록 조정.
+### 6.1 즉시 가치 / 낮은 노력 (2026-04-28 완료)
+- ✅ **검색 점수 확신도 게이팅**: `/api/search`에 `SCORE_THRESHOLD=0.45` 적용. 미달 시 `{ results: [], message: '관련 구절을 찾지 못했습니다.' }` 반환.
+- ✅ **Query expansion**: `/api/search`에 `expandQuery()` 추가 — chat과 동일한 신학적 키워드 확장 파이프라인 적용.
+- ✅ **BYO API 키 UI**: TopBar KeyIcon 버튼 → 팝오버 입력 → `localStorage('malsseum_gemini_key')` → `/api/chat`, `/api/search`, `/api/original` 헤더 주입.
+- ✅ **한지 노이즈 가시성 복구**: `ChatInterface` 루트 div `bg-[var(--hanji-warm)]` 제거 → `body::before` 텍스처 메시지 스크롤 영역에 투과.
+- **Per-verse context window**: 임베딩 시 전후 1-2 구절을 합쳐 인덱싱 (인덱스 크기 동일, 의미 더 풍부). — 미완료, 인덱스 재빌드 필요.
 
 ### 6.2 중간 노력 / 중간 가치
 - **하이브리드 (BM25 + dense)**: KRV 본문에 대해 inverted index (Lunr/MiniSearch 류) + RRF 융합.

@@ -38,9 +38,14 @@
 ### Phase 4.5 — 디자인 폴리시
 - **한지 미감 강화** — IBM Plex Sans KR (UI) + Noto Serif KR (구절), SVG 한지 섬유 노이즈 텍스처
 - **반경 토큰 위계** — `--radius-paper / --radius-control / --radius-pill` 일관 적용
-- **모노라인 SVG 아이콘 세트** — emoji 제거, `src/components/icons.tsx`에 9개 아이콘
+- **모노라인 SVG 아이콘 세트** — emoji 제거, `src/components/icons.tsx`에 10개 아이콘
 - **다크 모드 가독성** — `--clay` 액센트 다크 모드 전용 톤(#d6a87d) 으로 AA 충족 (~6.7:1)
 - **접근성** — 40px 터치 타깃, `prefers-reduced-motion` 가드, focus-visible 링 복원, transform-only 애니메이션
+
+### Phase 6 — 검색 품질 · UX 개선 (2026-04-28)
+- **검색 품질 일관성** — `/api/search`에 query expansion (`expandQuery`) + `SCORE_THRESHOLD=0.45` 점수 게이팅 적용. 미달 시 "관련 구절을 찾지 못했습니다" 안내.
+- **BYO Gemini API 키 UI** — TopBar 키 아이콘 버튼 클릭 → 팝오버에서 키 입력 → 브라우저 로컬 스토리지 저장. 키 설정 시 아이콘이 클레이 색으로 표시됨. 채팅·검색·원어 분석 API 호출에 자동 주입.
+- **한지 텍스처 복구** — `ChatInterface` 루트 배경 제거로 `body::before` 한지 섬유 노이즈가 메시지 스크롤 영역에 실제 노출.
 
 ---
 

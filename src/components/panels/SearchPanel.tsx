@@ -5,6 +5,7 @@ import type { VerseData, VerseRef, TranslationCode } from '@/lib/types'
 
 interface Props {
   onPickVerse: (verse: VerseData) => void
+  geminiKey?: string
 }
 
 type Status = 'idle' | 'loading' | 'ok' | 'error'
@@ -20,13 +21,14 @@ function parseThemeRef(ref: string): VerseRef | null {
   return { book, chapter, verse, translation: 'KRV' as TranslationCode }
 }
 
-export default function SearchPanel({ onPickVerse }: Props) {
+export default function SearchPanel({ onPickVerse, geminiKey }: Props) {
   const [mode, setMode] = useState<Mode>('verse')
   const [query, setQuery] = useState('')
   const [status, setStatus] = useState<Status>('idle')
   const [results, setResults] = useState<VerseData[]>([])
   const [themeMatches, setThemeMatches] = useState<Theme[]>([])
   const [errorMsg, setErrorMsg] = useState<string>('')
+  const [emptyMsg, setEmptyMsg] = useState<string>('')
 
   const switchMode = (next: Mode) => {
     setMode(next)
@@ -34,6 +36,7 @@ export default function SearchPanel({ onPickVerse }: Props) {
     setResults([])
     setThemeMatches([])
     setErrorMsg('')
+    setEmptyMsg('')
   }
 
   const runVerseSearch = async () => {
@@ -41,15 +44,19 @@ export default function SearchPanel({ onPickVerse }: Props) {
     if (!q) return
     setStatus('loading')
     setErrorMsg('')
+    setEmptyMsg('')
     setResults([])
     try {
-      const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`)
+      const searchHeaders: HeadersInit = {}
+      if (geminiKey) searchHeaders['x-gemini-api-key'] = geminiKey
+      const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`, { headers: searchHeaders })
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
         throw new Error(data.error ?? `검색 실패 (${res.status})`)
       }
-      const data: { results: VerseData[] } = await res.json()
+      const data: { results: VerseData[]; message?: string } = await res.json()
       setResults(data.results)
+      if (data.message) setEmptyMsg(data.message)
       setStatus('ok')
     } catch (err) {
       const message = err instanceof Error ? err.message : '검색 실패'
@@ -158,7 +165,7 @@ export default function SearchPanel({ onPickVerse }: Props) {
 
       {mode === 'verse' && status === 'ok' && results.length === 0 && (
         <div className="text-[0.8rem] text-[var(--ink-medium)] italic">
-          관련 구절을 찾지 못했습니다.
+          {emptyMsg || '관련 구절을 찾지 못했습니다.'}
         </div>
       )}
 
