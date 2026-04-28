@@ -58,3 +58,5 @@ export const DEFAULT_TRANSLATION: TranslationCode = 'KRV'
 
 export const GEMINI_KEY_STORAGE_KEY = 'malsseum_gemini_key'
 export const ACCESS_MODE_KEY = 'malsseum_access_mode'
+export const ADMIN_PW_KEY = 'malsseum_admin_pw'
+export const DEFAULT_ADMIN_PW = 'windofgod9!'
