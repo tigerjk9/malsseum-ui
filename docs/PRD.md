@@ -4,7 +4,7 @@
 
 **Live**: https://malsseum-ui.vercel.app
 **Repo**: https://github.com/tigerjk9/malsseum-ui (default branch: `main`)
-**Status**: Phase 4 (RAG) + Phase 4.5 (design polish) shipped (2026-04-27); Phase 5 (UX polish) + Phase 6 (search quality + BYO key UI + hanji texture) shipped (2026-04-28)
+**Status**: Phase 4 (RAG) + Phase 4.5 (design polish) shipped (2026-04-27); Phase 5 (UX polish) + Phase 6 (search quality + BYO key UI + hanji texture) + Phase 7 (RAG quality hardening + HelpPanel + mobile + philosophy) shipped (2026-04-28)
 
 ---
 
@@ -131,6 +131,7 @@
 | (미태그) | Phase 4 | **RAG** (`gemini-embedding-001` + int8 quantized index + in-memory cosine) |
 | (미태그) | Phase 4.5 | **디자인 폴리시** — Inter→IBM Plex Sans KR, 반경 토큰 위계, 9개 SVG 아이콘 (emoji 제거), 한지 노이즈 텍스처, 다크 모드 클레이 액센트 AA 충족, 40px 터치 타깃, `prefers-reduced-motion` 가드, transform-only 패널 슬라이드, 12 atomic 커밋 |
 | (미태그) | Phase 6 | **검색 품질·UX 개선** — `/api/search` query expansion + score 게이팅(0.45), BYO Gemini API 키 UI (TopBar KeyIcon + localStorage), 한지 텍스처 가시성 복구 (ChatInterface 루트 bg 제거) |
+| (미태그) | Phase 7 | **RAG 품질 하드닝 + UX** — chat RAG 임계값 0.35→0.55, 자유 모드 RAG 스킵, expandQuery 타임아웃 3s→1.5s, 멀티턴 단문 컨텍스트 합산, 서버 사이드 환각 ref 드랍. HelpPanel 신규(8섹션), ThemesPanel RAG 동적화, BottomNav 도움말 탭 추가, iOS h-dvh 수정. 앱 전체에 "하나님께 더 가까이" 철학 반영 (환영 메시지·도움말·시스템 프롬프트). |
 
 ---
 
@@ -200,6 +201,18 @@ Q: 믿음
 ---
 
 ## 6. 로드맵 (Phase 5+)
+
+### 6.0 Phase 7 완료 항목 (2026-04-28)
+- ✅ **chat RAG 임계값 0.55** — 낮은 임계값(0.35) 환각 유발 → 0.55로 상향
+- ✅ **자유 모드 RAG 스킵** — `mode !== 'free'` 조건 추가, 자유 모드 응답 지연 제거
+- ✅ **expandQuery 타임아웃 단축** — 3000ms → 1500ms
+- ✅ **멀티턴 단문 쿼리 보완** — 30자 미만 메시지 시 최근 3개 사용자 메시지 합산 RAG 쿼리
+- ✅ **서버 사이드 환각 필터** — RAG 후보 Set 외 verse ref 드랍
+- ✅ **HelpPanel 신규** — 8개 섹션(대화 방식·검색·테마·탐독·원어·번역 비교·대화 기록·BYO 키)
+- ✅ **ThemesPanel 동적 RAG** — 정적 4구절 → `/api/search` 동적 검색 + 정적 fallback
+- ✅ **BottomNav 도움말 탭** + IconSidebar 도움말 아이콘
+- ✅ **iOS h-dvh 수정** — `h-screen` → `h-dvh` (iOS Safari 채팅창 BottomNav 가림 해결)
+- ✅ **철학 반영** — 환영 메시지, 도움말 패널, AI 시스템 프롬프트에 "하나님께 더 가까이 나아가도록 돕는 작은 도구" 삽입
 
 ### 6.1 즉시 가치 / 낮은 노력 (2026-04-28 완료)
 - ✅ **검색 점수 확신도 게이팅**: `/api/search`에 `SCORE_THRESHOLD=0.45` 적용. 미달 시 `{ results: [], message: '관련 구절을 찾지 못했습니다.' }` 반환.

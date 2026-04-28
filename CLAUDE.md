@@ -55,7 +55,8 @@ Defined in `src/app/globals.css`. Light mode in `:root`, dark mode in `.dark`.
 | `src/lib/data/themes.ts` | 12 curated themes (search `mode=theme`). |
 | `src/lib/data/hanja-glossary.ts` | 30 theological terms with hanja. |
 | `src/app/globals.css` | Design tokens (light + dark), hanji noise overlay, motion guards. Single source of truth for color/radius/animation tokens. |
-| `src/components/icons.tsx` | 10 inline monoline SVG icons (KeyIcon 추가). Add new icons here, not as emoji. |
+| `src/components/icons.tsx` | 12 inline monoline SVG icons (KeyIcon, QuestionIcon 추가). Add new icons here, not as emoji. |
+| `src/components/panels/HelpPanel.tsx` | 8개 섹션 기능 안내 패널. 정적 컨텐츠, props 없음. |
 | `scripts/build-rag-index.mjs` | One-time RAG index builder (`npm run build:rag`). |
 | `scripts/smoke-rag.mjs` | Local RAG quality smoke test. |
 | `public/rag/verses-embed.bin` | int8 embedding index (22.78 MB, committed to git). |
@@ -94,6 +95,8 @@ npm run build:rag    # rebuild RAG index (~50min, needs GEMINI_API_KEY)
 - **Don't write to `malsseum_current` directly**. Active session persistence is managed by a `useEffect` in `ChatInterface` (saves on message/mode change, skips during `isLoading`). `malsseum_history` stores completed conversations (max 10). Both keys must stay in sync — see `CURRENT_KEY` / `HISTORY_KEY` constants.
 - **Don't add solid background to ChatInterface root**. The root `div` in `ChatInterface.tsx` is intentionally background-less (transparent) so `body::before` hanji texture shows through the message scroll area. If you need a surface color, apply it to a specific child element (TopBar, sidebar, input bar) not the root.
 - **Don't call `/api/search` without score filtering**. `SCORE_THRESHOLD = 0.45` in `search/route.ts` gates results. Below this threshold, return `{ results: [], message: '...' }`. Don't lower it without testing against the §4.1 benchmark queries.
+- **Don't lower `RAG_SCORE_THRESHOLD` below 0.55 in `/api/chat`**. Chat threshold (0.55) is higher than search (0.45) because low-quality RAG candidates injected into the LLM context cause hallucinated verse citations. Free mode skips RAG entirely — don't add it back.
+- **Don't run RAG in free mode**. `mode !== 'free'` guard in `chat/route.ts` is intentional. Free mode is LLM-context-first conversation; RAG only adds latency and can push the model toward citations the user didn't ask for.
 
 ## Related projects (separate repos)
 

@@ -47,6 +47,13 @@
 - **BYO Gemini API 키 UI** — TopBar 키 아이콘 버튼 클릭 → 팝오버에서 키 입력 → 브라우저 로컬 스토리지 저장. 키 설정 시 아이콘이 클레이 색으로 표시됨. 채팅·검색·원어 분석 API 호출에 자동 주입.
 - **한지 텍스처 복구** — `ChatInterface` 루트 배경 제거로 `body::before` 한지 섬유 노이즈가 메시지 스크롤 영역에 실제 노출.
 
+### Phase 7 — RAG 품질 하드닝 · UX · 철학 (2026-04-28)
+- **RAG 품질 하드닝** — chat RAG 임계값 0.35→0.55, 자유 모드 RAG 스킵, expandQuery 타임아웃 3s→1.5s, 30자 미만 단문 메시지 시 최근 3개 사용자 메시지 합산 쿼리, 서버 사이드 환각 verse ref 드랍 필터
+- **도움말 패널** — 8개 섹션 기능 안내 (대화 방식·검색·묵상 테마·탐독·원어·번역 비교·대화 기록·BYO 키). BottomNav·IconSidebar 진입점 추가.
+- **ThemesPanel 동적화** — 12개 테마 카탈로그 정적 4구절 → RAG 동적 검색 + 정적 fallback
+- **모바일 최적화** — `h-screen` → `h-dvh` (iOS Safari 채팅창 BottomNav 가림 해결)
+- **앱 철학 반영** — 환영 메시지·도움말·AI 시스템 프롬프트 전체에 "하나님께 더 가까이 나아가도록 돕는 작은 도구" 삽입
+
 ---
 
 ## 시작하기
@@ -167,11 +174,12 @@ src/
 │   ├── TopBar.tsx, BottomNav.tsx, IconSidebar.tsx, SlidePanel.tsx
 │   ├── ThemeProvider.tsx, ThemeToggle.tsx
 │   ├── HanjaText.tsx, HanjaToggle.tsx
-│   ├── icons.tsx                     # Phase 4.5 모노라인 SVG 아이콘 9종
+│   ├── icons.tsx                     # 모노라인 SVG 아이콘 12종
 │   └── panels/
 │       ├── BrowsePanel.tsx           # 책/장 탐색
 │       ├── SearchPanel.tsx           # 키워드/테마 검색
-│       ├── ThemesPanel.tsx           # 12 테마 카탈로그
+│       ├── ThemesPanel.tsx           # 12 테마 (동적 RAG + 정적 fallback)
+│       ├── HelpPanel.tsx             # 8섹션 기능 안내
 │       ├── TranslationComparePanel.tsx
 │       └── OriginalLanguagePanel.tsx
 ├── lib/
@@ -218,6 +226,8 @@ vercel --prod
 | `v0.3.0-phase3` | 깊이 도구 | 원어 분석, 한자 토글, 다크모드, BottomNav, 12 테마 |
 | (미태그) | Phase 4 | 0원 RAG (`gemini-embedding-001` + int8 양자화 + 인메모리 코사인) |
 | (미태그) | Phase 4.5 | 디자인 폴리시 (IBM Plex Sans KR, 반경 토큰, SVG 아이콘, 다크 모드 가독성) |
+| (미태그) | Phase 6 | 검색 품질·BYO 키 UI·한지 텍스처 복구 |
+| (미태그) | Phase 7 | RAG 품질 하드닝·HelpPanel·동적 ThemesPanel·iOS 수정·철학 반영 |
 
 ---
 
