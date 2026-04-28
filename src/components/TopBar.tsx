@@ -54,6 +54,20 @@ export default function TopBar({
           <PlusIcon width={16} height={16} />
         </button>
 
+        {/* 관리자 → 접속 전환 */}
+        {accessMode === 'admin' && (
+          <button
+            onClick={onOpenAccessGate}
+            aria-label="접속 화면으로 돌아가기"
+            title="접속 방식 변경 / 첫 화면으로"
+            className="text-[0.65rem] text-[var(--clay)]/70 hover:text-[var(--clay)]
+                       hover:bg-[var(--clay-light)] transition-colors
+                       px-2 py-1 rounded-[var(--radius-control)] whitespace-nowrap"
+          >
+            접속 전환
+          </button>
+        )}
+
         {/* 접속 모드 / API 키 상태 */}
         <button
           onClick={onOpenAccessGate}

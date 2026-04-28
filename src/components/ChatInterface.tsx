@@ -102,6 +102,7 @@ export default function ChatInterface() {
     error: null,
     dialogueMode: 'inductive',
   })
+  const [isCheckingAccess, setIsCheckingAccess] = useState(true)
   const [hanjaEnabled, setHanjaEnabled] = useState(false)
   const [geminiKey, setGeminiKey] = useState('')
   const [adminToken, setAdminToken] = useState('')
@@ -130,7 +131,6 @@ export default function ChatInterface() {
       setAccessMode('admin')
     } else {
       if (savedToken) {
-        // 만료된 토큰 정리
         localStorage.removeItem(ADMIN_TOKEN_KEY)
         localStorage.removeItem(ACCESS_MODE_KEY)
       }
@@ -138,9 +138,10 @@ export default function ChatInterface() {
         setGeminiKey(savedKey)
         setAccessMode('user')
       } else {
-        setGateOpen(true) // 첫 방문 또는 토큰 만료 → 게이트 표시
+        setGateOpen(true)
       }
     }
+    setIsCheckingAccess(false)
   }, [])
 
   const handleAccessComplete = (mode: 'admin' | 'user', apiKey?: string, token?: string) => {
@@ -396,6 +397,7 @@ export default function ChatInterface() {
   const panelTitle =
     state.activePanel !== 'none' ? PANEL_TITLES[state.activePanel] : ''
 
+  if (isCheckingAccess) return <div className="flex flex-col h-dvh" />
 
   return (
     <div className="flex flex-col h-dvh">
